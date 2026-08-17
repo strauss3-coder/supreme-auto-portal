@@ -606,9 +606,11 @@ table.tbl .mut{color:var(--text-3);font-size:12px}
   position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;
   background:rgba(4,5,7,.7);-webkit-backdrop-filter:blur(7px);;backdrop-filter:blur(7px);
   opacity:0;transition:opacity .3s var(--ease);overflow-y:auto;
-  pointer-events:none;
 }
-.modal-scrim.on{opacity:1;pointer-events:auto}
+.modal-scrim.on{opacity:1}
+/* Inert only while fading out, so a dying overlay cannot swallow the
+   click meant for whatever is behind it. */
+.modal-scrim.closing{pointer-events:none}
 .modal{
   width:100%;max-width:760px;margin:auto;border-radius:var(--r-xl);
   background:linear-gradient(180deg,rgba(26,31,41,.97),rgba(14,17,23,.98));
@@ -1046,6 +1048,19 @@ const U = {
   },
   initials(name){
     return String(name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  },
+  /* Wraps a handler so a second call is ignored while the first is still
+     running. Delegated handlers cannot be disabled the way a single button
+     can, and each of these either writes to the database or destroys a
+     record, so a double tap must not run it twice. */
+  guard(fn){
+    let busy = false;
+    return async function(){
+      if(busy) return;
+      busy = true;
+      try{ return await fn.apply(this,arguments); }
+      finally{ busy = false; }
+    };
   },
   debounce(fn,ms=220){ let t; return function(){ clearTimeout(t); const a=arguments,c=this; t=setTimeout(()=>fn.apply(c,a),ms); }; },
   clamp:(n,a,b)=>Math.min(b,Math.max(a,n)),
@@ -1888,6 +1903,7 @@ const UI = {
       if(closed) return;
       closed = true;
       scrim.classList.remove('on');
+      scrim.classList.add('closing');
       setTimeout(()=>scrim.remove(),320);
       document.removeEventListener('keydown',esc);
       UI._lock(-1);
@@ -2440,7 +2456,7 @@ Portal.register({
     U.on(root,'click','[data-tab]',(e,b)=>{ s.tab=b.dataset.tab; Router.refresh(); });
     U.on(root,'click','[data-act="add"]',()=>Modules.vehicleForm(null));
     U.on(root,'click','[data-act="export"]',()=>Modules.exportVehicles());
-    U.on(root,'click','[data-vact]',(e,b)=>Modules.vehicleAction(b.dataset.vact,b.dataset.id));
+    U.on(root,'click','[data-vact]',U.guard((e,b)=>Modules.vehicleAction(b.dataset.vact,b.dataset.id)));
     U.on(root,'click','[data-vopen]',(e,b)=>{
       if(e.target.closest('[data-vact]')) return;
       Modules.vehicleForm(b.dataset.vopen);
@@ -2673,14 +2689,14 @@ Portal.register({
         Router.paintBadges();
       }
     });
-    U.on(root,'click','[data-act="clear"]',async()=>{
+    U.on(root,'click','[data-act="clear"]',U.guard(async()=>{
       if(!Store.list('gallery').length) return UI.toast('warn','Nothing to remove','Your gallery is already empty.');
       if(await UI.confirm({title:'Remove all gallery images?',message:'Every image in your gallery will be deleted. This cannot be undone unless you have a backup.',confirmText:'Remove all'})){
         Store.data.gallery=[]; Store.persist();
         Store.log('Gallery cleared','All gallery images were removed','trash','dan');
         Router.refresh(); UI.toast('ok','Gallery cleared','');
       }
-    });
+    }));
   }
 });
 /* ==================================================================
@@ -2725,7 +2741,7 @@ Portal.register({
   },
   mount(root){
     U.on(root,'click','[data-act="add"]',()=>Modules.testimonialForm(null));
-    U.on(root,'click','[data-tact]',async(e,b)=>{
+    U.on(root,'click','[data-tact]',U.guard(async(e,b)=>{
       const t = Store.find('testimonials',b.dataset.id);
       if(!t) return;
       if(b.dataset.tact==='edit') return Modules.testimonialForm(t.id);
@@ -2741,7 +2757,7 @@ Portal.register({
           Router.refresh(); UI.toast('ok','Testimonial deleted','');
         }
       }
-    });
+    }));
   }
 });
 
@@ -2786,7 +2802,7 @@ Portal.register({
   },
   mount(root){
     U.on(root,'click','[data-act="add"]',()=>Modules.offerForm(null));
-    U.on(root,'click','[data-oact]',async(e,b)=>{
+    U.on(root,'click','[data-oact]',U.guard(async(e,b)=>{
       const o = Store.find('offers',b.dataset.id);
       if(!o) return;
       const act = b.dataset.oact;
@@ -2808,7 +2824,7 @@ Portal.register({
           Router.refresh(); UI.toast('ok','Offer deleted','');
         }
       }
-    });
+    }));
   }
 });
 
@@ -2975,7 +2991,7 @@ Portal.register({
     U.on(root,'click','[data-act="export"]',()=>Modules.exportEnquiries());
     U.on(root,'click','[data-act="add"]',()=>Modules.enquiryForm());
     U.on(root,'click','[data-eopen]',(e,tr)=>{ if(!e.target.closest('[data-eact]')) Modules.enquiryView(tr.dataset.eopen); });
-    U.on(root,'click','[data-eact]',async(e,b)=>{
+    U.on(root,'click','[data-eact]',U.guard(async(e,b)=>{
       e.stopPropagation();
       const en = Store.find('enquiries',b.dataset.id);
       if(!en) return;
@@ -2999,7 +3015,7 @@ Portal.register({
           Router.refresh(); UI.toast('ok','Enquiry deleted','');
         }
       }
-    });
+    }));
   }
 });
 
@@ -3121,26 +3137,26 @@ DB.size()    // storage used in bytes
     });
     U.el('#btnSignOut2',root).addEventListener('click',()=>U.el('#btnLogout').click());
 
-    U.on(root,'click','[data-act="clearenq"]',async()=>{
+    U.on(root,'click','[data-act="clearenq"]',U.guard(async()=>{
       if(await UI.confirm({title:'Delete all enquiries?',message:'Every customer message will be permanently removed. Export a CSV first if you need the records.',confirmText:'Delete all enquiries'})){
         Store.replaceAll('enquiries',[]);
         Store.log('All enquiries deleted','The enquiry list was cleared','trash','dan');
         Router.refresh(); UI.toast('ok','Enquiries deleted','');
       }
-    });
-    U.on(root,'click','[data-act="clearveh"]',async()=>{
+    }));
+    U.on(root,'click','[data-act="clearveh"]',U.guard(async()=>{
       if(await UI.confirm({title:'Delete all vehicles?',message:'Every vehicle and its photos will be removed from your website.',confirmText:'Delete all vehicles'})){
         Store.replaceAll('vehicles',[]);
         Store.log('All vehicles deleted','The stock list was cleared','trash','dan');
         Router.refresh(); UI.toast('ok','Vehicles deleted','');
       }
-    });
-    U.on(root,'click','[data-act="reset"]',async()=>{
+    }));
+    U.on(root,'click','[data-act="reset"]',U.guard(async()=>{
       if(await UI.confirm({title:'Reset the entire portal?',message:'All of your content, settings and images will be replaced with the starting sample data. This cannot be undone.',confirmText:'Reset everything'})){
         DB.clear(); Store.init(); Shell.applyTheme(); Router.buildNav(); Router.go('dashboard');
         UI.toast('ok','Portal reset','Everything is back to the starting content');
       }
-    });
+    }));
   }
 });
 /* ==================================================================
@@ -3340,7 +3356,7 @@ const cars = await res.json();
       }
     });
 
-    U.on(root,'click','[data-act="push"]',async()=>{
+    U.on(root,'click','[data-act="push"]',U.guard(async()=>{
       const ok = await UI.confirm({
         title:'Push your content to the database?',
         message:'Your own vehicles, testimonials, offers, enquiries and settings are written to Supabase. Records marked as samples are left behind. Anything already in the database with the same id is overwritten.',
@@ -3353,9 +3369,9 @@ const cars = await res.json();
         Store.persist(true); Router.refresh();
         UI.toast('ok','Pushed to the database',c.vehicles+' vehicles, '+c.testimonials+' testimonials, '+c.offers+' offers');
       }catch(err){ UI.toast('err','Push failed',err.message); }
-    });
+    }));
 
-    U.on(root,'click','[data-act="pull"]',async()=>{
+    U.on(root,'click','[data-act="pull"]',U.guard(async()=>{
       const ok = await UI.confirm({
         title:'Replace this device with the database copy?',
         message:'Everything currently in this browser is replaced by what is in Supabase. Any change on this device that has not synced yet will be lost.',
@@ -3367,9 +3383,9 @@ const cars = await res.json();
         Shell.applyTheme(); Router.buildNav(); Router.go('database');
         UI.toast('ok','Loaded from the database','');
       }catch(err){ UI.toast('err','Could not load',err.message); }
-    });
+    }));
 
-    U.on(root,'click','[data-act="killdemo"]',async()=>{
+    U.on(root,'click','[data-act="killdemo"]',U.guard(async()=>{
       const n = ['vehicles','testimonials','offers','enquiries'].reduce((a,k)=>a+Store.list(k).filter(r=>r.demo).length,0);
       const ok = await UI.confirm({
         title:'Delete all sample records?',
@@ -3383,7 +3399,7 @@ const cars = await res.json();
       Store.log('Sample records deleted','Placeholder content was cleared out','trash','warn');
       Store.persist(true); Router.refresh();
       UI.toast('ok','Sample records deleted','The portal now holds only your own content');
-    });
+    }));
 
     U.on(root,'click','[data-act="sql"]',()=>{
       UI.modal({ size:'lg', title:'Database schema', sub:'Run this once in the Supabase SQL Editor', autofocus:false,
@@ -4598,8 +4614,20 @@ const Shell = {
   },
   async logout(){
     const btn = U.el('#btnLogout');
-    if(btn) btn.innerHTML = ICON.refresh;
-    await Cloud.signOut();                       /* revokes the token server side */
+    /* The icon has to be put back. Sign out ends on the login screen, but the
+       sidebar button survives it, so signing back in used to show a refresh
+       icon where the sign-out icon belongs until a full page reload. The
+       guard stops a second click firing a second revoke. */
+    if(Shell._loggingOut) return;
+    Shell._loggingOut = true;
+    const mark = btn ? btn.innerHTML : '';
+    if(btn){ btn.innerHTML = ICON.refresh; btn.disabled = true; }
+    try{
+      await Cloud.signOut();                     /* revokes the token server side */
+    }finally{
+      if(btn){ btn.innerHTML = mark; btn.disabled = false; }
+      Shell._loggingOut = false;
+    }
     Shell.lock();
   },
 
