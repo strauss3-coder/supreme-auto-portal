@@ -606,8 +606,9 @@ table.tbl .mut{color:var(--text-3);font-size:12px}
   position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;
   background:rgba(4,5,7,.7);-webkit-backdrop-filter:blur(7px);;backdrop-filter:blur(7px);
   opacity:0;transition:opacity .3s var(--ease);overflow-y:auto;
+  pointer-events:none;
 }
-.modal-scrim.on{opacity:1}
+.modal-scrim.on{opacity:1;pointer-events:auto}
 .modal{
   width:100%;max-width:760px;margin:auto;border-radius:var(--r-xl);
   background:linear-gradient(180deg,rgba(26,31,41,.97),rgba(14,17,23,.98));
@@ -635,12 +636,12 @@ table.tbl .mut{color:var(--text-3);font-size:12px}
 .tabs button .n{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;margin-left:5px;border-radius:99px;background:var(--accent-soft);color:var(--accent-2);font-size:10px;font-weight:700}
 
 /* ============================================================ TOASTS */
-#toasts{position:fixed;bottom:20px;right:20px;z-index:500;display:grid;gap:9px;max-width:calc(100vw - 40px)}
+#toasts{position:fixed;bottom:20px;right:20px;z-index:500;display:grid;gap:9px;max-width:calc(100vw - 40px);pointer-events:none}
 .toast{
   display:flex;align-items:center;gap:11px;min-width:270px;padding:12px 15px;border-radius:var(--r-md);
   background:linear-gradient(145deg,rgba(30,35,46,.97),rgba(18,21,28,.97));
   border:1px solid var(--line-2);box-shadow:var(--sh-4);-webkit-backdrop-filter:blur(18px);;backdrop-filter:blur(18px);
-  animation:toastIn .4s var(--ease-out);
+  animation:toastIn .4s var(--ease-out);pointer-events:auto;
 }
 .toast.out{animation:toastOut .3s var(--ease) forwards}
 .toast-ic{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex-shrink:0}
@@ -1819,6 +1820,13 @@ const Store = {
    5. UI  -  toasts, modal, confirm, lightbox, sortable, uploader
    ================================================================== */
 const UI = {
+  /* Counted, because a confirm often opens on top of an editor. The lock
+     only lifts when the last overlay has gone. */
+  _locks:0,
+  _lock(d){
+    UI._locks = Math.max(0, UI._locks + d);
+    document.body.style.overflow = UI._locks ? 'hidden' : '';
+  },
   toast(type,title,msg){
     const wrap = U.el('#toasts');
     const ic = type==='ok' ? `<svg class="check-anim" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>`
@@ -1852,10 +1860,19 @@ const UI = {
       </div>`;
     root.appendChild(scrim);
     requestAnimationFrame(()=>scrim.classList.add('on'));
+    const opener = document.activeElement;
+    UI._lock(1);
+    let closed = false;
     const close = ()=>{
+      /* Guard against a second call. Escape, the X, the scrim and a caller
+         doing its own close() can all land, and onClose must fire once. */
+      if(closed) return;
+      closed = true;
       scrim.classList.remove('on');
       setTimeout(()=>scrim.remove(),320);
       document.removeEventListener('keydown',esc);
+      UI._lock(-1);
+      if(opener && opener.focus) { try{ opener.focus(); }catch(e){} }
       if(opts.onClose) opts.onClose();
     };
     const esc = e=>{ if(e.key==='Escape') close(); };
@@ -1891,9 +1908,20 @@ const UI = {
     box.className='lightbox';
     box.innerHTML = `<button class="x">${ICON.x}</button><img src="${src}" alt="Preview">`;
     root.appendChild(box);
-    const close = ()=>box.remove();
+    const opener = document.activeElement;
+    UI._lock(1);
+    let gone = false;
+    const close = ()=>{
+      if(gone) return;
+      gone = true;
+      box.remove();
+      document.removeEventListener('keydown',onKey);
+      UI._lock(-1);
+      if(opener && opener.focus) { try{ opener.focus(); }catch(e){} }
+    };
+    const onKey = e=>{ if(e.key==='Escape') close(); };
     box.addEventListener('click',e=>{ if(e.target===box || e.target.closest('.x')) close(); });
-    document.addEventListener('keydown',function h(e){ if(e.key==='Escape'){close();document.removeEventListener('keydown',h);} });
+    document.addEventListener('keydown',onKey);
   },
 
   /* animated counters --------------------------------------------- */
@@ -4461,7 +4489,16 @@ const Router = {
     this.current = mod.id;
     U.els('.sb-link').forEach(b=>b.classList.toggle('on',b.dataset.nav===mod.id));
     U.el('#tbTitle').innerHTML = `${U.esc(mod.title)}<small>${U.esc(mod.sub||'')}</small>`;
-    const view = U.el('#view');
+    /* Swap #view for a shallow clone before every render. Modules bind
+       delegated listeners to this node in mount(), and mount() runs again on
+       every navigation and every refresh. Reusing the node stacked a fresh
+       set of listeners each time, so after N renders a single click fired
+       its handler N times and opened N identical dialogs. Replacing the node
+       discards the old listeners along with it. */
+    let view = U.el('#view');
+    const freshView = view.cloneNode(false);
+    view.parentNode.replaceChild(freshView, view);
+    view = freshView;
     view.classList.remove('anim');
     view.innerHTML = UI.skeleton(mod.skeleton||'list',5);
     document.title = mod.title+' · Supreme Auto Portal';
