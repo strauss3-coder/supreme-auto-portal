@@ -4454,7 +4454,13 @@ const Router = {
       if(!grp){ grp={name:g,items:[]}; groups.push(grp); }
       grp.items.push(m);
     });
-    U.el('#sbNav').innerHTML = groups.map(g=>`
+    /* Same reason as #view in go(): buildNav() runs again after a restore,
+       a database pull or a re-login, and #sbNav is permanent. Swap it for a
+       clone so the previous click handler goes with it. */
+    const oldNav = U.el('#sbNav');
+    const nav = oldNav.cloneNode(false);
+    oldNav.parentNode.replaceChild(nav, oldNav);
+    nav.innerHTML = groups.map(g=>`
       <div class="sb-group">${U.esc(g.name)}</div>
       ${g.items.map(m=>`
         <button class="sb-link" data-nav="${m.id}">
@@ -4463,7 +4469,7 @@ const Router = {
           <span data-badge="${m.id}"></span>
         </button>`).join('')}
     `).join('');
-    U.on(U.el('#sbNav'),'click','[data-nav]',(e,b)=>{
+    U.on(nav,'click','[data-nav]',(e,b)=>{
       location.hash = '#/'+b.dataset.nav;
       Shell.closeSidebar();
     });
