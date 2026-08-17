@@ -1823,6 +1823,25 @@ const UI = {
   /* Counted, because a confirm often opens on top of an editor. The lock
      only lifts when the last overlay has gone. */
   _locks:0,
+  /* Binds a click handler that cannot run twice. A destructive or
+     record-creating button stays inert until its work finishes, so a
+     double tap -- common on touch, and easy on a slow save -- cannot
+     insert the same record twice or fire two deletes. */
+  once(el,fn){
+    if(!el) return;
+    let busy = false;
+    el.addEventListener('click',async e=>{
+      if(busy) return;
+      busy = true;
+      el.disabled = true;
+      try{ await fn(e); }
+      catch(err){ console.warn(err); }
+      finally{
+        busy = false;
+        if(el.isConnected) el.disabled = false;
+      }
+    });
+  },
   _lock(d){
     UI._locks = Math.max(0, UI._locks + d);
     document.body.style.overflow = UI._locks ? 'hidden' : '';
@@ -3928,7 +3947,7 @@ const Modules = {
       paint();
     });
 
-    U.el('[data-vsave]',m.el).addEventListener('click',()=>{
+    UI.once(U.el('[data-vsave]',m.el),()=>{
       if(!draft.name.trim() && !(draft.brand && draft.model)){
         tab='details';
         U.els('[data-vt]',m.el).forEach(x=>x.classList.toggle('on',x.dataset.vt==='details'));
@@ -3951,7 +3970,7 @@ const Modules = {
     });
 
     const del = U.el('[data-vdel]',m.el);
-    if(del) del.addEventListener('click',async()=>{
+    if(del) UI.once(del,async()=>{
       if(await UI.confirm({title:'Delete this vehicle?',message:draft.name+' and all of its photos will be permanently removed.',confirmText:'Delete vehicle'})){
         Store.remove('vehicles',id);
         Store.log('Vehicle deleted',draft.name,'trash','dan');
@@ -4022,7 +4041,7 @@ const Modules = {
       draft.rating = Number(b.dataset.star);
       U.els('[data-star]',m.el).forEach(x=>x.classList.toggle('on',Number(x.dataset.star)<=draft.rating));
     });
-    U.el('[data-save]',m.el).addEventListener('click',()=>{
+    UI.once(U.el('[data-save]',m.el),()=>{
       if(!draft.name.trim()) return UI.toast('err','A name is needed','Add the customer name first.');
       if(!draft.review.trim()) return UI.toast('err','A review is needed','Add what the customer said.');
       if(editing){ Store.update('testimonials',id,draft); Store.log('Testimonial updated','Review from '+draft.name,'star'); }
@@ -4092,7 +4111,7 @@ const Modules = {
     UI.imagePicker(U.el('#offImg',m.el),{value:draft.image,label:'Upload image',h:80,max:1400,onChange:v=>{draft.image=v;prev();}});
     prev();
 
-    U.el('[data-save]',m.el).addEventListener('click',()=>{
+    UI.once(U.el('[data-save]',m.el),()=>{
       if(!draft.title.trim()) return UI.toast('err','A title is needed','Give your offer a short title.');
       if(editing){ Store.update('offers',id,draft); Store.log('Offer updated',draft.title,'tag'); }
       else{ Store.insert('offers',draft); Store.log('Offer created',draft.title,'tag','ok'); }
@@ -4145,7 +4164,7 @@ const Modules = {
     if(w) w.addEventListener('click',()=>window.open('https://wa.me/'+wa+'?text='+encodeURIComponent('Good day '+e.name.split(' ')[0]+', thank you for your enquiry about the '+(e.vehicle||'vehicle')+' at Supreme Auto.'),'_blank','noopener'));
     const ml = U.el('[data-mail]',m.el);
     if(ml) ml.addEventListener('click',()=>window.location.href='mailto:'+e.email+'?subject='+encodeURIComponent('Your enquiry about the '+(e.vehicle||'vehicle')));
-    U.el('[data-del]',m.el).addEventListener('click',async()=>{
+    UI.once(U.el('[data-del]',m.el),async()=>{
       if(await UI.confirm({title:'Delete this enquiry?',message:'The message from '+e.name+' will be permanently removed.',confirmText:'Delete enquiry'})){
         Store.remove('enquiries',id); m.close(); Router.refresh(); UI.toast('ok','Enquiry deleted','');
       }
@@ -4175,7 +4194,7 @@ const Modules = {
               <div class="sp"><button class="btn btn-pri" data-save>${ICON.check} Save enquiry</button></div>`
     });
     H.bind(m.el,(k,v)=>draft[k]=v,()=>{});
-    U.el('[data-save]',m.el).addEventListener('click',()=>{
+    UI.once(U.el('[data-save]',m.el),()=>{
       if(!draft.name.trim()) return UI.toast('err','A name is needed','Add the customer name first.');
       Store.insert('enquiries',draft);
       Store.log('Enquiry logged','Enquiry from '+draft.name+' was added','inbox','ok');
