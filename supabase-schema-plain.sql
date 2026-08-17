@@ -43,6 +43,7 @@ create table if not exists public.testimonials (
   rating      int not null default 5 check (rating between 1 and 5),
   review      text default '',
   photo       text default '',
+  source      text not null default 'Direct',
   featured    boolean not null default false,
   sort_order  int not null default 0,
   created_at  timestamptz not null default now(),
@@ -161,7 +162,8 @@ end $$;
 create policy "owner reads own membership" on public.portal_owners
   for select to authenticated using (user_id = auth.uid());
 
-create policy "public reads settings"     on public.site_settings for select to anon using (true);
+create policy "public reads settings"     on public.site_settings for select to anon
+  using (key in ('homepage','contact','appearance','gallery'));
 create policy "public reads vehicles"     on public.vehicles      for select to anon using (archived = false);
 create policy "public reads testimonials" on public.testimonials  for select to anon using (true);
 create policy "public reads live offers"  on public.offers        for select to anon
@@ -215,8 +217,15 @@ create or replace view public.website_vehicles
 
 grant usage on schema public to anon, authenticated;
 
-grant select on public.site_settings, public.vehicles, public.testimonials,
+grant select on public.site_settings, public.testimonials,
                 public.offers, public.website_vehicles to anon;
+
+revoke select on public.vehicles from anon;
+grant select (id, name, brand, model, year, mileage, transmission, fuel, body, colour,
+           engine, power, condition, price, installment, description, features,
+           images, stock, status, featured, sold, reserved, archived, views,
+           sort_order, created_at)
+  on public.vehicles to anon;
 grant insert on public.enquiries to anon;
 
 grant select, insert, update, delete

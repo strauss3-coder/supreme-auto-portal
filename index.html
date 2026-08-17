@@ -362,7 +362,11 @@ img{max-width:100%;display:block}
 .sep{height:1px;background:var(--line);margin:16px 0}
 
 .switch{display:flex;align-items:center;gap:11px;cursor:pointer;-webkit-user-select:none;user-select:none}
-.switch input{display:none}
+/* Hidden visually but still focusable. display:none would remove the control
+   from the tab order entirely, making every toggle in the portal
+   keyboard-unreachable. */
+.switch input{position:absolute;width:1px;height:1px;opacity:0;margin:0;pointer-events:none}
+.switch input:focus-visible+.track{outline:2px solid var(--accent-2);outline-offset:2px}
 .switch .track{
   width:42px;height:24px;border-radius:99px;flex-shrink:0;position:relative;
   background:rgba(255,255,255,.11);border:1px solid var(--line);transition:.28s var(--ease);
@@ -1190,7 +1194,7 @@ const MAP = {
 };
 
 /* Settings documents stored one row each in site_settings. */
-const SETTINGS_KEYS = ['homepage','contact','appearance','analytics','gallery','meta'];
+const SETTINGS_KEYS = ['homepage','contact','appearance','gallery','meta'];
 
 /* Your project, pre-filled on the Database page so there is nothing to type.
    Both values are safe to keep in this file. The publishable key is designed
@@ -1665,13 +1669,6 @@ const SEED = () => ({
     logo:'', favicon:'', heroBg:'', darkSite:true,
     tagline:'Premium vehicles · Pretoria North'
   },
-  analytics:{
-    visitors7:[186,214,198,265,312,289,341],
-    visitors30Total:7420, visitorsPrev:6180,
-    whatsappClicks:214, phoneCalls:96, formSubmits:41, vehicleViews:12840,
-    devices:{ Mobile:68, Desktop:26, Tablet:6 },
-    sources:{ 'Google search':46, 'Facebook':21, 'Direct':18, 'Instagram':11, 'Referral':4 }
-  },
   activity:[],
   notifications:[]
 });
@@ -1812,7 +1809,6 @@ const Store = {
       offersOn:this.list('offers').filter(o=>o.active).length,
       unread:this.list('enquiries').filter(e=>e.status==='unread').length,
       enquiries:this.list('enquiries').length,
-      whatsapp:this.data.analytics.whatsappClicks,
       stockValue:v.filter(x=>!x.sold).reduce((s,x)=>s+(Number(x.price)||0),0),
       views:v.reduce((s,x)=>s+(Number(x.views)||0),0)
     };
@@ -2238,12 +2234,9 @@ Portal.register({
   id:'dashboard', title:'Dashboard', sub:'Overview of your website', icon:'dash', group:'Overview', skeleton:'stats',
   render(){
     const st = Store.stats();
-    const a = Store.data.analytics;
     const live = Store.data.meta.siteLive;
     const recent = (Store.data.activity||[]).slice(0,7);
     const topVeh = Store.list('vehicles').filter(v=>!v.archived).sort((x,y)=>(y.views||0)-(x.views||0)).slice(0,5);
-    const maxV = Math.max.apply(null,a.visitors7.concat([1]));
-    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
     return `
     ${H.head('Good day, welcome back','Here is how the Supreme Auto website is performing right now.',`
@@ -2256,7 +2249,6 @@ Portal.register({
       ${H.stat({label:'Vehicles sold',count:st.sold,icon:'checkCircle',tone:'ok',sub:'<span class="trend up">All time total</span>'})}
       ${H.stat({label:'Gallery images',count:st.gallery,icon:'image',tone:'vio',sub:'<span>Shown on your gallery page</span>'})}
       ${H.stat({label:'Unread enquiries',count:st.unread,icon:'inbox',tone:st.unread?'dan':'ok',sub:`<span>${st.enquiries} enquiries in total</span>`})}
-      ${H.stat({label:'WhatsApp leads',count:st.whatsapp,icon:'whatsapp',tone:'ok',sub:'<span class="trend up">Last 30 days</span>'})}
     </div>
 
     <div class="grid" style="grid-template-columns:1.55fr 1fr;align-items:start;margin-bottom:16px" data-dash-cols>
@@ -2294,16 +2286,7 @@ Portal.register({
         </div>`)}
     </div>
 
-    <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start;margin-bottom:16px" data-dash-cols>
-      ${H.card('Visitors this week','Daily unique visitors to your website',`
-        <div class="bars">
-          ${a.visitors7.map((v,i)=>`
-            <div class="bar-col">
-              <b>${U.num(v)}</b>
-              <div class="bar" style="height:${Math.round((v/maxV)*112)}px"></div>
-              <span>${days[i]}</span>
-            </div>`).join('')}
-        </div>`,`<span class="chip acc">${ICON.trend} ${Math.round(((Store.data.analytics.visitors30Total-Store.data.analytics.visitorsPrev)/Store.data.analytics.visitorsPrev)*100)}% vs last month</span>`)}
+    <div class="grid" style="grid-template-columns:minmax(0,1fr);align-items:start;margin-bottom:16px">
       ${H.card('Most viewed vehicles','What buyers are looking at',
         topVeh.length ? `<div class="rank">${topVeh.map((v,i)=>{
           const max = topVeh[0].views||1;
@@ -2339,7 +2322,11 @@ Portal.register({
       g.style.gridTemplateColumns = window.innerWidth<960 ? 'minmax(0,1fr)' : (i===0?'1.55fr 1fr':'1fr 1fr');
     });
     fit();
-    window.addEventListener('resize',U.debounce(fit,200));
+    /* every re-render calls mount again, so drop the previous listener
+       instead of stacking a new one on top of it */
+    if(this._onResize) window.removeEventListener('resize',this._onResize);
+    this._onResize = U.debounce(fit,200);
+    window.addEventListener('resize',this._onResize);
   }
 });
 
@@ -2969,203 +2956,7 @@ Portal.register({
   }
 });
 
-/* ==================================================================
-   MODULE: Website appearance
-   ================================================================== */
-Portal.register({
-  id:'appearance', title:'Website Appearance', sub:'Colours, fonts and branding', icon:'palette', group:'Website', instant:true,
-  render(){
-    const a = Store.data.appearance;
-    const accents = ['#0A84FF','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316'];
-    const fonts = ['Inter','Poppins','Montserrat','Roboto','Playfair Display','DM Sans','Manrope','System default'];
-    return `
-    ${H.head('Website Appearance','Set the colours, fonts and logos used across your entire website.',
-      `<button class="btn" data-act="reset">${ICON.refresh} Reset to defaults</button>`)}
-    <div class="grid g2" style="align-items:start">
-      <div class="grid" style="gap:14px">
-        ${H.card('Brand colours','Your accent colour is used on buttons, links and highlights',`
-          <div class="grid" style="gap:16px">
-            <div class="field">
-              <label>Accent colour</label>
-              <div class="swatches">
-                ${accents.map(c=>`<button class="sw ${a.accent.toLowerCase()===c.toLowerCase()?'on':''}" data-acc="${c}" style="background:${c}" title="${c}"></button>`).join('')}
-                <input class="color-in" type="color" data-k="accent" value="${a.accent}" title="Choose any colour">
-              </div>
-              <span class="hint">Currently ${a.accent.toUpperCase()}. The portal preview updates instantly.</span>
-            </div>
-            <div class="grid g2">
-              ${H.field('Primary background',`<div class="row" style="gap:8px"><input class="color-in" type="color" data-k="primary" value="${a.primary}">${H.input('primary',a.primary,'#07080B')}</div>`)}
-              ${H.field('Success colour',`<div class="row" style="gap:8px"><input class="color-in" type="color" data-k="success" value="${a.success}">${H.input('success',a.success,'#10B981')}</div>`)}
-            </div>
-            ${H.toggleCard('darkSite',a.darkSite,'Dark website theme','Use a dark background on the public website','ok','palette')}
-          </div>`)}
-        ${H.card('Typography','Fonts used on your website',`
-          <div class="grid g2">
-            ${H.field('Heading font',H.sel('heading',a.heading,fonts))}
-            ${H.field('Body font',H.sel('bodyFont',a.bodyFont,fonts))}
-          </div>
-          <div class="sep"></div>
-          ${H.field('Tagline under your logo',H.input('tagline',a.tagline,'Premium vehicles · Pretoria North'))}`)}
-        ${H.card('Buttons','How buttons look across the site',`
-          <div class="grid" style="gap:14px">
-            ${H.field('Corner style',H.sel('btnStyle',a.btnStyle,[{v:'rounded',l:'Rounded corners'},{v:'pill',l:'Fully rounded pill'},{v:'square',l:'Square corners'}]))}
-            ${H.field('Corner size',`<input class="inp" type="range" min="0" max="28" step="2" data-k="radius" value="${a.radius}" style="padding:6px 0">`,'Currently '+a.radius+'px')}
-            ${H.toggleCard('btnShadow',a.btnShadow,'Soft button shadow','Adds depth to every button','','bolt')}
-          </div>`)}
-      </div>
-      <div class="grid" style="gap:14px">
-        ${H.card('Logo','Shown in your header and footer','<div id="logoUp"></div>')}
-        ${H.card('Favicon','The small icon in the browser tab','<div id="favUp"></div>')}
-        ${H.card('Hero background','The large image behind your headline','<div id="hbgUp"></div>')}
-        ${H.card('Live preview','How your buttons and colours look together',`
-          <div class="preview">
-            <div class="preview-bar"><i></i><i></i><i></i><span>supremeautonorth.co.za</span></div>
-            <div style="padding:20px" id="apPrev"></div>
-          </div>`)}
-      </div>
-    </div>`;
-  },
-  mount(root){
-    const a = Store.data.appearance;
-    const repaint = ()=>{ Shell.applyTheme(); this.preview(root); };
-    H.bind(root,(k,v)=>{ a[k] = (k==='radius') ? Number(v) : v; },()=>{
-      Store.persist(); Store.log('Appearance updated','Website colours or fonts were changed','palette'); repaint();
-    });
-    U.els('[data-k="radius"]',root).forEach(el=>el.addEventListener('input',()=>{
-      a.radius=Number(el.value);
-      const hint = el.closest('.field').querySelector('.hint');
-      if(hint) hint.textContent = 'Currently '+a.radius+'px';
-      this.preview(root);
-    }));
-    U.on(root,'click','[data-acc]',(e,b)=>{
-      a.accent = b.dataset.acc; Store.persist();
-      Store.log('Accent colour changed','Website accent set to '+a.accent,'palette');
-      Router.refresh(); UI.toast('ok','Accent colour updated','');
-    });
-    U.on(root,'click','[data-act="reset"]',async()=>{
-      if(await UI.confirm({title:'Reset appearance?',message:'Colours, fonts and button styles return to the Supreme Auto defaults. Your logo and images are kept.',confirmText:'Reset appearance',tone:'warn'})){
-        Object.assign(a,{primary:'#07080B',accent:'#0A84FF',success:'#10B981',heading:'Inter',bodyFont:'Inter',radius:16,btnStyle:'rounded',btnShadow:true,darkSite:true});
-        Store.persist(); Shell.applyTheme(); Router.refresh(); UI.toast('ok','Appearance reset','');
-      }
-    });
-    UI.imagePicker(U.el('#logoUp',root),{value:a.logo,label:'Upload logo',h:90,max:600,onChange:v=>{a.logo=v;Store.persist();this.preview(root);}});
-    UI.imagePicker(U.el('#favUp',root),{value:a.favicon,label:'Upload favicon',h:64,round:true,max:128,onChange:v=>{a.favicon=v;Store.persist();}});
-    UI.imagePicker(U.el('#hbgUp',root),{value:a.heroBg,label:'Upload hero background',h:110,max:1800,onChange:v=>{a.heroBg=v;Store.persist();}});
-    this.preview(root);
-  },
-  preview(root){
-    const a = Store.data.appearance;
-    const p = U.el('#apPrev',root);
-    if(!p) return;
-    const r = a.btnStyle==='pill' ? '999px' : a.btnStyle==='square' ? '2px' : a.radius+'px';
-    const sh = a.btnShadow ? '0 8px 22px -10px '+a.accent+'88' : 'none';
-    p.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        ${a.logo?`<img src="${a.logo}" style="height:32px;width:auto;object-fit:contain">`
-                :`<div style="width:32px;height:32px;border-radius:10px;background:${a.accent};display:grid;place-items:center;font-weight:800;color:#fff">S</div>`}
-        <div><b style="font-size:13.5px">Supreme Auto</b><div style="font-size:11px;color:var(--text-3)">${U.esc(a.tagline||'')}</div></div>
-      </div>
-      <div style="font-family:${a.heading==='System default'?'inherit':a.heading}, var(--font);font-size:19px;font-weight:750;letter-spacing:-.03em">Find your next vehicle</div>
-      <p style="font-size:12.5px;color:var(--text-2);margin-top:6px;font-family:${a.bodyFont==='System default'?'inherit':a.bodyFont}, var(--font)">Body text uses the ${U.esc(a.bodyFont)} font. Headings use ${U.esc(a.heading)}.</p>
-      <div class="row" style="margin-top:14px">
-        <span style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:${r};background:${a.accent};color:#fff;font-weight:650;font-size:13px;box-shadow:${sh}">View inventory</span>
-        <span style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:${r};background:${a.success};color:#fff;font-weight:650;font-size:13px;box-shadow:${a.btnShadow?'0 8px 22px -10px '+a.success+'88':'none'}">WhatsApp us</span>
-        <span style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:${r};border:1px solid var(--line-2);font-weight:650;font-size:13px">Contact</span>
-      </div>`;
-  }
-});
 
-/* ==================================================================
-   MODULE: Analytics
-   ================================================================== */
-Portal.register({
-  id:'analytics', title:'Analytics', sub:'How your website is performing', icon:'chart', group:'Insights',
-  render(){
-    const a = Store.data.analytics;
-    const st = Store.stats();
-    const growth = Math.round(((a.visitors30Total-a.visitorsPrev)/a.visitorsPrev)*100);
-    const maxV = Math.max.apply(null,a.visitors7.concat([1]));
-    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const topVeh = Store.list('vehicles').filter(v=>!v.archived).sort((x,y)=>(y.views||0)-(x.views||0)).slice(0,6);
-    const spark = (vals)=>{
-      const max = Math.max.apply(null,vals), min = Math.min.apply(null,vals);
-      const pts = vals.map((v,i)=>{
-        const x = (i/(vals.length-1))*100;
-        const y = 46 - ((v-min)/(max-min||1))*38;
-        return x.toFixed(1)+','+y.toFixed(1);
-      }).join(' ');
-      return `<svg class="spark" viewBox="0 0 100 52" preserveAspectRatio="none">
-        <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent)" stop-opacity=".38"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
-        </linearGradient></defs>
-        <polygon points="0,52 ${pts} 100,52" fill="url(#sg)"/>
-        <polyline points="${pts}" fill="none" stroke="var(--accent-2)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
-      </svg>`;
-    };
-    return `
-    ${H.head('Analytics','A snapshot of your website traffic and the leads it produces. These figures are sample data for design purposes.',
-      `<span class="chip warn">${ICON.info} Sample data</span>`)}
-    <div class="stats" style="margin-bottom:16px">
-      ${H.stat({label:'Visitors this month',count:a.visitors30Total,icon:'users',sub:`<span class="trend ${growth>=0?'up':'down'}">${growth>=0?'+':''}${growth}%</span><span>vs last month</span>`})}
-      ${H.stat({label:'Vehicle views',count:a.vehicleViews,icon:'eye',tone:'vio',sub:'<span>Across all listings</span>'})}
-      ${H.stat({label:'WhatsApp clicks',count:a.whatsappClicks,icon:'whatsapp',tone:'ok',sub:'<span class="trend up">Your best lead source</span>'})}
-      ${H.stat({label:'Phone calls',count:a.phoneCalls,icon:'phone',tone:'warn',sub:'<span>Tap to call on mobile</span>'})}
-      ${H.stat({label:'Form enquiries',count:a.formSubmits,icon:'inbox',sub:'<span>Sent from your contact page</span>'})}
-      ${H.stat({label:'Conversion rate',value:((a.whatsappClicks+a.phoneCalls+a.formSubmits)/a.visitors30Total*100).toFixed(1)+'%',icon:'trend',tone:'ok',sub:'<span>Visitors who made contact</span>'})}
-    </div>
-
-    <div class="grid" style="grid-template-columns:1.5fr 1fr;align-items:start;margin-bottom:16px" data-an-cols>
-      ${H.card('Visitors this week','Daily unique visitors',`
-        <div class="bars">
-          ${a.visitors7.map((v,i)=>`<div class="bar-col"><b>${U.num(v)}</b><div class="bar" style="height:${Math.round((v/maxV)*112)}px"></div><span>${days[i]}</span></div>`).join('')}
-        </div>
-        <div class="sep"></div>
-        ${spark(a.visitors7)}`)}
-      ${H.card('Where visitors come from','Traffic sources',`
-        <div class="rank">
-          ${Object.keys(a.sources).map((k,i)=>`
-            <div class="rank-row">
-              <div class="rank-top"><span class="rank-n">${i+1}</span><b>${U.esc(k)}</b><span>${a.sources[k]}%</span></div>
-              <div class="meter ${i%3===1?'ok':i%3===2?'vio':''}"><i data-w="${a.sources[k]}%"></i></div>
-            </div>`).join('')}
-        </div>`)}
-    </div>
-
-    <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start;margin-bottom:16px" data-an-cols>
-      ${H.card('Most viewed vehicles','Your most popular listings',
-        topVeh.length?`<div class="rank">${topVeh.map((v,i)=>`
-          <div class="rank-row">
-            <div class="rank-top"><span class="rank-n">${i+1}</span><b>${U.esc(v.name)}</b><span>${U.num(v.views||0)}</span></div>
-            <div class="meter"><i data-w="${Math.round(((v.views||0)/(topVeh[0].views||1))*100)}%"></i></div>
-          </div>`).join('')}</div>`:H.empty('car','No vehicles yet','Add vehicles to see view counts.'))}
-      ${H.card('Devices used','How people browse your website',`
-        <div class="rank">
-          ${Object.keys(a.devices).map((k,i)=>`
-            <div class="rank-row">
-              <div class="rank-top"><span class="rank-n">${ICON.globe?i+1:''}</span><b>${U.esc(k)}</b><span>${a.devices[k]}%</span></div>
-              <div class="meter ${i===0?'ok':i===1?'':'warn'}"><i data-w="${a.devices[k]}%"></i></div>
-            </div>`).join('')}
-        </div>
-        <div class="note" style="margin-top:16px">${ICON.info}<div>Most of your visitors are on a phone, so your mobile layout matters most.</div></div>`)}
-    </div>
-
-    ${H.card('Enquiries by status','Where your leads currently sit',`
-      <div class="grid g3">
-        ${[['Unread',st.unread,'dan'],['Contacted',Store.list('enquiries').filter(e=>e.status==='contacted').length,'warn'],['Completed',Store.list('enquiries').filter(e=>e.status==='completed').length,'ok']]
-          .map(r=>`<div class="stat" style="animation:none">
-            <div class="stat-lab">${r[0]}</div>
-            <div class="stat-val" data-count="${r[1]}"></div>
-            <div class="meter ${r[2]==='ok'?'ok':r[2]==='warn'?'warn':''}" style="margin-top:10px"><i data-w="${st.enquiries?Math.round((r[1]/st.enquiries)*100):0}%"></i></div>
-          </div>`).join('')}
-      </div>`)}`;
-  },
-  mount(root){
-    const fix = ()=>U.els('[data-an-cols]',root).forEach((g,i)=>{
-      g.style.gridTemplateColumns = window.innerWidth<960 ? 'minmax(0,1fr)' : (i===0?'1.5fr 1fr':'1fr 1fr');
-    });
-    fix(); window.addEventListener('resize',U.debounce(fix,200));
-  }
-});
 
 /* ==================================================================
    MODULE: Settings
@@ -3238,7 +3029,7 @@ Portal.register({
 
         ${H.card('Connecting a database','How to go live with real data later',`
           <div class="grid" style="gap:12px">
-            <div class="note">${ICON.db}<div>Your portal currently saves to this browser. Every action already runs through a single storage layer, so moving to Supabase or Firebase only means swapping four functions.</div></div>
+            <div class="note ok">${ICON.db}<div>This portal is already connected to Supabase, and Supabase is the only way in. Content lives in the database, photos in Storage, and your sign in is a real Supabase account. The four functions below are the local cache that keeps the portal working when the signal drops.</div></div>
             <div class="code">DB.read()    // load all portal data
 DB.write(d)  // save all portal data
 DB.clear()   // remove stored data
@@ -3248,21 +3039,6 @@ DB.size()    // storage used in bytes
 // calls and nothing else needs to change.</div>
           </div>`)}
 
-        ${H.card('Coming soon','Modules ready to be added to your portal',`
-          <div class="grid" style="gap:8px">
-            ${[['Finance Applications','Capture and track finance deals','briefcase'],
-               ['Staff Management','Team members and permissions','users'],
-               ['Inventory Reports','Stock age and turnover reports','chart'],
-               ['Service History','Vehicle service records','gear2'],
-               ['Customer CRM','Full customer relationship history','users'],
-               ['Invoice Generator','Create and send invoices','doc'],
-               ['Quotation Builder','Build quotes in seconds','file'],
-               ['Notification Centre','Alerts for new leads','bell'],
-               ['AI Description Writer','Write vehicle adverts automatically','sparkles'],
-               ['Vehicle Comparison','Let buyers compare two cars','layers'],
-               ['Document Uploads','Store licences and NATIS papers','file']]
-              .map(s=>`<div class="soon"><div class="li-ic vio">${ICON[s[2]]}</div><div style="min-width:0"><b>${s[0]}</b><small>${s[1]}</small></div><span class="chip vio" style="margin-left:auto">Planned</span></div>`).join('')}
-          </div>`)}
       </div>
     </div>`;
   },
@@ -3639,6 +3415,7 @@ create table if not exists public.testimonials (
   rating      int not null default 5 check (rating between 1 and 5),
   review      text default '',
   photo       text default '',
+  source      text not null default 'Direct',
   featured    boolean not null default false,
   sort_order  int not null default 0,
   created_at  timestamptz not null default now(),
@@ -3757,7 +3534,8 @@ end $$;
 create policy "owner reads own membership" on public.portal_owners
   for select to authenticated using (user_id = auth.uid());
 
-create policy "public reads settings"     on public.site_settings for select to anon using (true);
+create policy "public reads settings"     on public.site_settings for select to anon
+  using (key in ('homepage','contact','appearance','gallery'));
 create policy "public reads vehicles"     on public.vehicles      for select to anon using (archived = false);
 create policy "public reads testimonials" on public.testimonials  for select to anon using (true);
 create policy "public reads live offers"  on public.offers        for select to anon
@@ -3811,8 +3589,15 @@ create or replace view public.website_vehicles
 
 grant usage on schema public to anon, authenticated;
 
-grant select on public.site_settings, public.vehicles, public.testimonials,
+grant select on public.site_settings, public.testimonials,
                 public.offers, public.website_vehicles to anon;
+
+revoke select on public.vehicles from anon;
+grant select (id, name, brand, model, year, mileage, transmission, fuel, body, colour,
+           engine, power, condition, price, installment, description, features,
+           images, stock, status, featured, sold, reserved, archived, views,
+           sort_order, created_at)
+  on public.vehicles to anon;
 grant insert on public.enquiries to anon;
 
 grant select, insert, update, delete
@@ -4094,7 +3879,7 @@ const Modules = {
             ${H.toggleCard('sold',draft.sold,'Sold','Marks the vehicle sold and removes it from the available list','ok','checkCircle')}
             ${H.toggleCard('archived',draft.archived,'Archived','Hides the vehicle from your website completely','','archive')}
             <div class="sep"></div>
-            ${H.field('Vehicle views',`<input class="inp" data-k="views" type="number" min="0" value="${draft.views||0}">`,'Used in your analytics. Reset it to zero if you relist the vehicle.')}
+            ${H.field('Vehicle views',`<input class="inp" data-k="views" type="number" min="0" value="${draft.views||0}">`,'Shown on the vehicle card and the dashboard. Reset it to zero if you relist the vehicle.')}
           </div>`;
       }
       H.bind(panel,(k,val)=>{
