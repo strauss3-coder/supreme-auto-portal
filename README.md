@@ -7,6 +7,8 @@ A private management portal for the Supreme Auto website. One HTML file, no buil
 | File | What it is |
 | --- | --- |
 | `index.html` | The whole portal. Open it in any browser. |
+| `supabase-security-patch.sql` | **Not yet run.** Closes the VIN and settings exposure. See "What is still missing". |
+| `Supreme-Auto-Website/` | The public website, deployed to GitHub Pages. Reads this database. |
 | `supabase-schema-plain.sql` | **Run this one** in Supabase. No comments, so nothing can be mangled by autocorrect. |
 | `supabase-schema.sql` | The same SQL fully commented, for reading. |
 | `README.md` | This guide. |
@@ -79,7 +81,7 @@ The pill in the top right now reads **Synced**. Click it any time to see status 
 
 ### 6. Make the website read the data
 
-**This is the part that is not done yet, and it is the only part that changes what visitors see.** Connecting the portal does nothing to supremeautonorth.co.za on its own. The website has to be changed to fetch its vehicles from Supabase instead of whatever it uses today.
+**This is done.** supremeautonorth.co.za reads its stock, reviews, contact details and hero copy from this database. Change something in the portal, reload the site, and it is there. `js/supabase-data.js` is the only file on the website that talks to Supabase; `js/site-content.js` applies settings through `data-sa` attributes.
 
 The portal gives you the code. Open **Database** and click **Copy both snippets**. A vehicle listing page needs about ten lines:
 
@@ -104,7 +106,7 @@ Never put a **secret** key (`sb_secret_...`) or the legacy **service_role** key 
 
 ## The sample content
 
-The portal ships with 16 placeholder records: 6 vehicles, 3 testimonials, 2 offers and 5 enquiries. **These are invented.** The customer names, the reviews, the phone numbers, the descriptions and the BMW's VIN are all made up. They exist so the portal does not look empty on first open.
+The portal ships with no sample content. It starts empty and fills from the database the moment you sign in. The 16 invented placeholder records that used to be here were removed before handover.
 
 Every one of them carries a red **Sample** badge, and they are excluded from every push to the database. Delete them with one button on the **Database** page before you go live.
 
@@ -136,9 +138,10 @@ To sync a new section to the database, add a table to the schema and an entry to
 
 ## What is still missing
 
-- The website itself does not read from Supabase yet. Step 6 above.
-- The schema has not been executed yet, so it is unverified against a real Postgres. If a statement errors when you run it, the message will say which line.
-- Analytics is placeholder data. Real figures need Google Analytics or Plausible wired in.
+- **`supabase-security-patch.sql` has not been run.** Until it is, an anonymous visitor can read the `vin` column straight off the `vehicles` table, and the `analytics` and `meta` settings documents are publicly readable. No VIN is filled in yet so nothing is exposed today, but the portal's own form promises that field is private. Run it in the SQL Editor and confirm afterwards that `/rest/v1/vehicles?select=vin` fails.
+- The Google rating and review count on the website (4.0 stars, 51 reviews) are hardcoded in three places, including the `aggregateRating` structured data. They have never been checked against the real Google Business Profile.
+- No audit trail of who changed what. `activity_log` records the change but not the account.
+- Offers and Gallery can be edited in the portal but no website section renders them yet.
 - No image cropping. Photos are resized but not cropped.
 - No audit trail of who changed what, since there is only one account.
 - Signing in requires internet. Resuming an existing session does not.
