@@ -12,6 +12,6 @@ grant select (id, name, brand, model, year, mileage, transmission, fuel, body,
 
 drop policy if exists "public reads settings" on public.site_settings;
 create policy "public reads settings" on public.site_settings for select to anon
-  using (key in ('homepage','contact','appearance','gallery'));
+  using (key in ('homepage','contact'));
 
 commit;

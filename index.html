@@ -525,10 +525,6 @@ img{max-width:100%;display:block}
 .prog{height:4px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:10px}
 .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#66C2FF);border-radius:99px;transition:width .22s var(--ease)}
 
-/* ============================================================ GALLERY */
-.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
-.gal .thumb{aspect-ratio:1/1}
-
 /* ============================================================ TABLE / LISTS */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.tbl{width:100%;border-collapse:collapse;min-width:660px}
@@ -830,7 +826,6 @@ table.tbl .mut{color:var(--text-3);font-size:12px}
   .modal-f .btn{width:100%}
   #toasts{left:14px;right:14px;bottom:14px}
   .toast{min-width:0}
-  .gal{grid-template-columns:repeat(auto-fill,minmax(124px,1fr))}
   .view{padding:16px 13px 84px}
   .tb-title{font-size:15px}
   .veh-acts{gap:5px}
@@ -960,8 +955,6 @@ const ICON = (()=>{
     tag:s('<path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0l-7-7A2 2 0 013 12.2V5a2 2 0 012-2h7.2a2 2 0 011.4.6l7 7a2 2 0 010 2.8z"/><circle cx="7.8" cy="7.8" r="1.3"/>'),
     phone:s('<path d="M22 16.9v3a2 2 0 01-2.2 2 19.5 19.5 0 01-8.5-3 19.2 19.2 0 01-5.9-5.9 19.5 19.5 0 01-3-8.6A2 2 0 014.4 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.5 9.8a15.7 15.7 0 005.7 5.7l1.2-1.2a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/>'),
     inbox:s('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.2h13a2 2 0 011.8 1.1l3 5.7V18a2 2 0 01-2 2H3.7a2 2 0 01-2-2v-6l3-5.7a2 2 0 011.8-1.1z"/>'),
-    palette:s('<circle cx="13.5" cy="6.5" r="1.2"/><circle cx="17.5" cy="10.5" r="1.2"/><circle cx="8.5" cy="7.5" r="1.2"/><circle cx="6.5" cy="12.5" r="1.2"/><path d="M12 22a10 10 0 110-20c5.5 0 10 4 10 9 0 3-2.4 5-5 5h-2.2c-1.2 0-2.2 1-2.2 2.2 0 .5.2 1 .4 1.4.2.4.3.9.3 1.2 0 .7-.5 1.2-1.3 1.2z"/>'),
-    chart:s('<path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.6L20 7"/>'),
     cog:s('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/>'),
     plus:s('<path d="M12 5v14M5 12h14"/>'),
     edit:s('<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>'),
@@ -979,13 +972,10 @@ const ICON = (()=>{
     whatsapp:s('<path d="M21 11.5A8.4 8.4 0 0112.5 20a8.5 8.5 0 01-4-1L4 20l1.1-4.3A8.5 8.5 0 1121 11.5z"/><path d="M8.8 9.2c0 3 2.2 5.2 5.2 5.2"/>'),
     mail:s('<rect x="2" y="4.5" width="20" height="15" rx="2.5"/><path d="M2.6 6l8.3 6a2 2 0 002.2 0l8.3-6"/>'),
     pin:s('<path d="M20 10.5c0 6-8 11.5-8 11.5s-8-5.5-8-11.5a8 8 0 1116 0z"/><circle cx="12" cy="10.5" r="2.6"/>'),
-    clock:s('<circle cx="12" cy="12" r="9.5"/><path d="M12 7v5.3l3.4 2"/>'),
     gauge:s('<path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M13.4 10.6L18 6"/><path d="M3.6 18a10 10 0 1116.8 0"/>'),
     fuel:s('<path d="M4 22V4a2 2 0 012-2h5a2 2 0 012 2v18"/><path d="M4 12h9M13 8h3.5a2 2 0 012 2v8a2 2 0 104 0v-7l-3-4"/>'),
     gear2:s('<circle cx="12" cy="12" r="9.5"/><path d="M12 7v10M8.5 9.5h7"/>'),
-    calendar:s('<rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/>'),
     money:s('<rect x="2" y="6" width="20" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/>'),
-    bolt:s('<path d="M13.5 2L4 14h7l-1 8 9.5-12h-7l1-8z"/>'),
     activity:s('<path d="M22 12h-4l-3 8-4-16-3 8H2"/>'),
     grip:s('<circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/>'),
     globe:s('<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5a15 15 0 010 19 15 15 0 010-19z"/>'),
@@ -995,18 +985,11 @@ const ICON = (()=>{
     db:s('<ellipse cx="12" cy="5.5" rx="8.5" ry="3.2"/><path d="M3.5 5.5v13c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2v-13"/><path d="M3.5 12c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2"/>'),
     key:s('<circle cx="7.5" cy="15.5" r="4"/><path d="M10.5 12.5L20 3M17 6l2.5 2.5M14.5 8.5L17 11"/>'),
     file:s('<path d="M14 2H6.5A2 2 0 004.5 4v16a2 2 0 002 2h11a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6"/>'),
-    filter:s('<path d="M3 4.5h18l-7 8.4V20l-4-2.2v-4.9L3 4.5z"/>'),
     sort:s('<path d="M7 3v18M7 21l-3.5-3.5M7 21l3.5-3.5M17 21V3M17 3l-3.5 3.5M17 3l3.5 3.5"/>'),
     reserve:s('<path d="M12 2l2.6 6.6L21 9.5l-4.7 4.4 1.2 6.4L12 17.2 6.5 20.3l1.2-6.4L3 9.5l6.4-.9L12 2z"/>'),
-    layers:s('<path d="M12 2.5l9.5 5-9.5 5-9.5-5 9.5-5z"/><path d="M2.5 12.5l9.5 5 9.5-5M2.5 17l9.5 5 9.5-5"/>'),
-    briefcase:s('<rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M2 13h20"/>'),
     sparkles:s('<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.9 2.3 2.3.9-2.3.9L19 21.4l-.9-2.3-2.3-.9 2.3-.9L19 15z"/>'),
-    bell:s('<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>'),
     refresh:s('<path d="M21 12a9 9 0 11-3.2-6.9M21 4v5h-5"/>'),
-    logo:s('<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 15c1.4 1 6.6 1 8-1.5S9 12 9 9.5 14.5 8 16 9"/>'),
-    type:s('<path d="M4 6V4h16v2M12 4v16M9 20h6"/>'),
     doc:s('<path d="M4 4.5A2 2 0 016 2.5h8l6 6v11a2 2 0 01-2 2H6a2 2 0 01-2-2v-15z"/><path d="M8 13h8M8 17h5"/>'),
-    trend:s('<path d="M22 7l-8.5 8.5-4-4L2 19"/><path d="M16 7h6v6"/>'),
   };
 })();
 
@@ -1185,15 +1168,6 @@ const MAP = {
       photo:r.photo, featured:r.featured, source:r.source||'Direct',
       createdAt:MS(r.created_at), updatedAt:MS(r.updated_at) })
   },
-  offers:{
-    table:'offers', bucket:'branding',
-    to:(o,i)=>({ id:o.id, title:o.title||'', description:o.description||'', btn_text:o.btnText||'',
-      btn_link:o.btnLink||'', colour:o.colour||'#0A84FF', image:o.image||'', active:!!o.active,
-      expiry:o.expiry?ISO(o.expiry):null, sort_order:i||0, created_at:ISO(o.createdAt), updated_at:ISO(o.updatedAt) }),
-    from:r=>({ id:r.id, title:r.title, description:r.description, btnText:r.btn_text, btnLink:r.btn_link,
-      colour:r.colour, image:r.image, active:r.active, expiry:MS(r.expiry),
-      createdAt:MS(r.created_at), updatedAt:MS(r.updated_at) })
-  },
   enquiries:{
     table:'enquiries',
     to:e=>({ id:e.id, name:e.name||'', phone:e.phone||'', email:e.email||'', vehicle:e.vehicle||'',
@@ -1210,7 +1184,7 @@ const MAP = {
 };
 
 /* Settings documents stored one row each in site_settings. */
-const SETTINGS_KEYS = ['homepage','contact','appearance','gallery','meta'];
+const SETTINGS_KEYS = ['homepage','contact','meta'];
 
 /* Your project, pre-filled on the Database page so there is nothing to type.
    Both values are safe to keep in this file. The publishable key is designed
@@ -1419,7 +1393,6 @@ const Cloud = {
     });
   },
   settingsValue(k){
-    if(k==='gallery') return { list:Store.list('gallery') };
     if(k==='meta'){
       const m = Object.assign({},Store.data.meta);
       delete m.password;   /* defensive: strip any password left by an older build */
@@ -1476,11 +1449,10 @@ const Cloud = {
 
     const next = SEED();
     (settings||[]).forEach(row=>{
-      if(row.key==='gallery') next.gallery = (row.value&&row.value.list)||[];
-      else if(row.key==='meta') Object.assign(next.meta,row.value||{});
+      if(row.key==='meta') Object.assign(next.meta,row.value||{});
       else if(next[row.key]) next[row.key] = Store._merge(next[row.key],row.value||{});
     });
-    for(const key of ['vehicles','testimonials','offers','enquiries','activity']){
+    for(const key of ['vehicles','testimonials','enquiries','activity']){
       const m = MAP[key];
       const order = key==='activity' ? 'at.desc'
                   : key==='enquiries' ? 'created_at.desc'
@@ -1499,8 +1471,8 @@ const Cloud = {
     opts = opts||{};
     this.setStatus('syncing');
     const skipDemo = opts.includeSamples !== true;
-    const counts = { vehicles:0, testimonials:0, offers:0, enquiries:0 };
-    for(const key of ['vehicles','testimonials','offers','enquiries']){
+    const counts = { vehicles:0, testimonials:0, enquiries:0 };
+    for(const key of ['vehicles','testimonials','enquiries']){
       const m = MAP[key];
       const list = Store.list(key).filter(r=>!(skipDemo && r.demo));
       counts[key] = list.length;
@@ -1547,27 +1519,16 @@ const SEED = () => ({
     heroBadge:'Premium vehicles in Pretoria North',
     btn1Text:'Browse our inventory', btn1Link:'#inventory',
     btn2Text:'Chat on WhatsApp', btn2Link:'https://wa.me/27768615477',
-    heroImage:'',
-    featuredIds:[],
-    featuredTitle:'Featured vehicles',
-    featuredSub:'A selection of our finest stock, ready to drive away today.',
     aboutTitle:'About Supreme Auto',
     aboutText:'Supreme Auto is a family run dealership in Pretoria North built on honesty and long term relationships. Every vehicle on our floor is carefully inspected, competitively priced and backed by people who answer the phone after the sale.',
-    aboutImage:'',
     stats:[
       { label:'Vehicles sold', value:'850+' },
       { label:'Years in business', value:'12' },
       { label:'Happy customers', value:'1 200+' },
       { label:'Google rating', value:'4.9' }
     ],
-    ctaTitle:'Ready to find your next vehicle?',
-    ctaText:'Send us a message and one of our team will get back to you the same day.',
-    ctaBtnText:'Speak to our team', ctaBtnLink:'#contact',
-    banners:[]
   },
-  gallery:[],
   testimonials:[],
-  offers:[],
   contact:{
     phone:'082 771 8514',
     phone2:'',
@@ -1593,13 +1554,6 @@ const SEED = () => ({
     }
   },
   enquiries:[],
-  appearance:{
-    primary:'#07080B', accent:'#0A84FF', success:'#10B981',
-    heading:'Inter', bodyFont:'Inter',
-    radius:16, btnStyle:'rounded', btnShadow:true,
-    logo:'', favicon:'', heroBg:'', darkSite:true,
-    tagline:'Premium vehicles · Pretoria North'
-  },
   activity:[],
   notifications:[]
 });
@@ -1735,9 +1689,7 @@ const Store = {
       reserved:v.filter(x=>x.reserved && !x.sold).length,
       featured:v.filter(x=>x.featured && !x.sold).length,
       archived:all.filter(x=>x.archived).length,
-      gallery:this.list('gallery').length,
       testimonials:this.list('testimonials').length,
-      offersOn:this.list('offers').filter(o=>o.active).length,
       unread:this.list('enquiries').filter(e=>e.status==='unread').length,
       enquiries:this.list('enquiries').length,
       stockValue:v.filter(x=>!x.sold).reduce((s,x)=>s+(Number(x.price)||0),0),
@@ -1932,7 +1884,7 @@ const UI = {
      Renders a drop zone plus reorderable thumbnails. Calls onChange
      with the new array of data URLs. Works on desktop and mobile. */
   uploader(host,opts){
-    const cfg = Object.assign({ max:5, images:[], label:'Drop images here or tap to browse', hint:'', square:false }, opts);
+    const cfg = Object.assign({ max:5, images:[], label:'Drop images here or tap to browse', hint:'' }, opts);
     let imgs = cfg.images.slice();
     const inputId = U.id('file');
 
@@ -1946,10 +1898,10 @@ const UI = {
         </div>
         <input type="file" id="${inputId}" accept="image/*" multiple class="hidden">
         <div class="prog hidden" data-prog><i></i></div>
-        ${imgs.length?`<div class="${cfg.square?'gal':'thumbs'}" data-thumbs>${imgs.map((src,i)=>`
+        ${imgs.length?`<div class="thumbs" data-thumbs>${imgs.map((src,i)=>`
           <div class="thumb" data-id="${i}" data-idx="${i}">
             <img src="${src}" alt="Image ${i+1}" loading="lazy">
-            ${i===0&&!cfg.square?`<span class="pri">Main</span>`:''}
+            ${i===0?`<span class="pri">Main</span>`:''}
             <span class="ord">${i+1}</span>
             <div class="tb">
               <button data-act="view" title="Preview">${ICON.eye}</button>
@@ -2225,7 +2177,6 @@ Portal.register({
       ${H.stat({label:'Website status',value:live?'Live':'Offline',icon:'globe',tone:live?'ok':'dan',sub:live?'<span class="trend up">All systems normal</span>':'<span class="trend down">Visitors see a notice</span>'})}
       ${H.stat({label:'Vehicles listed',count:st.available,icon:'car',sub:`<span>${st.reserved} reserved · ${st.featured} featured</span>`})}
       ${H.stat({label:'Vehicles sold',count:st.sold,icon:'checkCircle',tone:'ok',sub:'<span class="trend up">All time total</span>'})}
-      ${H.stat({label:'Gallery images',count:st.gallery,icon:'image',tone:'vio',sub:'<span>Shown on your gallery page</span>'})}
       ${H.stat({label:'Unread enquiries',count:st.unread,icon:'inbox',tone:st.unread?'dan':'ok',sub:`<span>${st.enquiries} enquiries in total</span>`})}
     </div>
 
@@ -2235,8 +2186,6 @@ Portal.register({
           <button class="qa" data-act="addveh"><span class="qa-ic">${ICON.plus}</span><b>Add a vehicle</b><small>List new stock</small></button>
           <button class="qa" data-go="enquiries"><span class="qa-ic">${ICON.inbox}</span><b>View enquiries</b><small>${st.unread} unread</small></button>
           <button class="qa" data-go="homepage"><span class="qa-ic">${ICON.home}</span><b>Edit homepage</b><small>Hero and sections</small></button>
-          <button class="qa" data-go="gallery"><span class="qa-ic">${ICON.image}</span><b>Manage gallery</b><small>${st.gallery} images</small></button>
-          <button class="qa" data-go="offers"><span class="qa-ic">${ICON.tag}</span><b>Special offers</b><small>${st.offersOn} running</small></button>
           <button class="qa" data-go="testimonials"><span class="qa-ic">${ICON.star}</span><b>Testimonials</b><small>${st.testimonials} reviews</small></button>
           <button class="qa" data-go="contact"><span class="qa-ic">${ICON.phone}</span><b>Contact details</b><small>Hours and numbers</small></button>
           <button class="qa" data-act="backup"><span class="qa-ic">${ICON.download}</span><b>Download backup</b><small>Save everything</small></button>
@@ -2246,7 +2195,6 @@ Portal.register({
           ${[
             {l:'Vehicles with photos',n:Store.list('vehicles').filter(v=>!v.archived&&v.images.length).length,d:Math.max(st.total,1),tone:''},
             {l:'Featured vehicles set',n:st.featured,d:4,tone:'ok'},
-            {l:'Gallery images uploaded',n:st.gallery,d:12,tone:'vio'},
             {l:'Testimonials published',n:st.testimonials,d:6,tone:'warn'}
           ].map(r=>{
             const pct = Math.min(100,Math.round((r.n/r.d)*100));
@@ -2387,7 +2335,7 @@ Portal.register({
   tab:'hero',
   render(){
     const h = Store.data.homepage;
-    const tabs = [['hero','Hero section'],['featured','Featured cars'],['banners','Banner images'],['about','About preview'],['stats','Statistics'],['cta','Call to action']];
+    const tabs = [['hero','Hero section'],['featured','Featured cars'],['about','About preview'],['stats','Statistics']];
     return `
     ${H.head('Homepage Editor','Change the words and images visitors see first. Everything saves as you type.',
       `<button class="btn" data-act="preview">${ICON.eye} Preview hero</button>`)}
@@ -2429,7 +2377,6 @@ Portal.register({
               </div>`)}
           </div>
           <div class="grid" style="gap:14px">
-            ${H.card('Hero background image','Shown behind your headline','<div id="heroImg"></div>')}
             ${H.card('Live preview','How the hero will look',`
               <div class="preview">
                 <div class="preview-bar"><i></i><i></i><i></i><span>supremeautonorth.co.za</span></div>
@@ -2438,8 +2385,6 @@ Portal.register({
           </div>
         </div>`;
       bindAll();
-      UI.imagePicker(U.el('#heroImg',host),{ value:h.heroImage, label:'Upload hero image', h:130, max:1800,
-        onChange:v=>{ h.heroImage=v; save(); this.previewHero(host); } });
       this.previewHero(host);
       U.els('[data-k]',host).forEach(el=>el.addEventListener('input',()=>this.previewHero(host)));
     }
@@ -2448,12 +2393,6 @@ Portal.register({
       const avail = Store.list('vehicles').filter(v=>!v.archived);
       const featured = avail.filter(v=>v.featured);
       host.innerHTML = `
-        ${H.card('Featured section heading','Text above your featured cars',`
-          <div class="grid g2">
-            ${H.field('Section title',H.input('featuredTitle',h.featuredTitle,'Featured vehicles'))}
-            ${H.field('Section subtitle',H.input('featuredSub',h.featuredSub,'A selection of our finest stock'))}
-          </div>`)}
-        <div style="height:14px"></div>
         ${H.card('Choose featured vehicles','Tick the vehicles that should appear on your homepage. Drag to change their order.',
           avail.length ? `<div id="featList">${featured.map(v=>Modules.sortRow(v)).join('')}</div>
             ${featured.length?'<div class="sep"></div>':''}
@@ -2489,25 +2428,17 @@ Portal.register({
       });
     }
 
-    if(this.tab==='banners'){
-      host.innerHTML = H.card('Homepage banner images','Wide images used across your homepage sections. Up to 5.','<div id="bnrUp"></div>');
-      UI.uploader(U.el('#bnrUp',host),{ max:5, images:h.banners||[], bucket:'branding', label:'Drop banner images here or tap to browse',
-        hint:'Wide landscape images work best.',
-        onChange:v=>{ h.banners=v; save(); Store.log('Banners updated',v.length+' banner images on the homepage','image'); } });
-    }
 
     if(this.tab==='about'){
       host.innerHTML = `
-        <div class="grid g2" style="align-items:start">
+        <div class="grid" style="align-items:start">
           ${H.card('About preview text','The short story shown on your homepage',`
             <div class="grid" style="gap:14px">
               ${H.field('Section title',H.input('aboutTitle',h.aboutTitle,'About Supreme Auto'))}
               ${H.field('About text',H.ta('aboutText',h.aboutText,'Tell visitors who you are',6),'Two or three sentences works best on a homepage.')}
             </div>`)}
-          ${H.card('About image','A photo of your dealership or team','<div id="aboutImg"></div>')}
         </div>`;
       bindAll();
-      UI.imagePicker(U.el('#aboutImg',host),{ value:h.aboutImage, label:'Upload about image', h:150, onChange:v=>{h.aboutImage=v;save();} });
     }
 
     if(this.tab==='stats'){
@@ -2530,33 +2461,6 @@ Portal.register({
       }));
     }
 
-    if(this.tab==='cta'){
-      host.innerHTML = `
-        ${H.card('Call to action band','The closing prompt at the bottom of your homepage',`
-          <div class="grid" style="gap:14px">
-            ${H.field('Title',H.input('ctaTitle',h.ctaTitle,'Ready to find your next vehicle?'))}
-            ${H.field('Supporting text',H.ta('ctaText',h.ctaText,'Send us a message and we will get back to you',2))}
-            <div class="grid g2">
-              ${H.field('Button text',H.input('ctaBtnText',h.ctaBtnText,'Speak to our team'))}
-              ${H.field('Button link',H.input('ctaBtnLink',h.ctaBtnLink,'#contact'))}
-            </div>
-          </div>`)}
-        <div style="height:14px"></div>
-        ${H.card('Preview','',`
-          <div class="preview">
-            <div class="hero-prev" style="padding:28px 20px">
-              <h4 id="ctaT">${U.esc(h.ctaTitle)}</h4>
-              <p id="ctaX">${U.esc(h.ctaText)}</p>
-              <div class="row"><span class="btn btn-pri" id="ctaB">${U.esc(h.ctaBtnText)}</span></div>
-            </div>
-          </div>`)}`;
-      bindAll();
-      U.els('[data-k]',host).forEach(el=>el.addEventListener('input',()=>{
-        U.el('#ctaT',host).textContent = h.ctaTitle;
-        U.el('#ctaX',host).textContent = h.ctaText;
-        U.el('#ctaB',host).textContent = h.ctaBtnText;
-      }));
-    }
     UI.animateAll(host);
   },
   previewHero(host){
@@ -2564,7 +2468,6 @@ Portal.register({
     const p = U.el('#heroPrev',host);
     if(!p) return;
     p.innerHTML = `
-      ${h.heroImage?`<div class="bgimg" style="background-image:url('${h.heroImage}')"></div>`:''}
       ${h.heroBadge?`<span class="chip acc" style="position:relative;margin-bottom:12px">${U.esc(h.heroBadge)}</span>`:''}
       <h4>${U.esc(h.heroTitle)}</h4>
       <p>${U.esc(h.heroSubtitle)}</p>
@@ -2575,45 +2478,6 @@ Portal.register({
   }
 });
 
-/* ==================================================================
-   MODULE: Gallery
-   ================================================================== */
-Portal.register({
-  id:'gallery', title:'Gallery Manager', sub:'Photos shown on your gallery page', icon:'image', group:'Website', instant:true,
-  badge(st){ return st.gallery ? {text:String(st.gallery),mut:true} : null; },
-  render(){
-    return `
-    ${H.head('Gallery Manager','Upload photos of your dealership, your team and happy customers. Drag any image to change the order.',
-      `<button class="btn btn-dan" data-act="clear">${ICON.trash} Remove all</button>`)}
-    ${H.card('Gallery images','Up to 30 images. The first image is used as your gallery cover.','<div id="galUp"></div>')}
-    <div style="height:14px"></div>
-    ${H.card('How this works','',`
-      <div class="grid" style="gap:10px">
-        <div class="note">${ICON.info}<div>Tap an image to preview it. Use the buttons on each image to replace, move or delete it. Every change saves instantly.</div></div>
-        <div class="note ok">${ICON.check}<div>Large photos are automatically resized so your website stays fast on mobile data.</div></div>
-      </div>`)}`;
-  },
-  mount(root){
-    UI.uploader(U.el('#galUp',root),{
-      max:30, images:Store.list('gallery'), square:true, bucket:'gallery',
-      label:'Drop photos here or tap to browse',
-      hint:'You can select several at once.',
-      onChange:v=>{
-        Store.data.gallery = v; Store.persist();
-        Store.log('Gallery updated',v.length+' images in your gallery','image');
-        Router.paintBadges();
-      }
-    });
-    U.on(root,'click','[data-act="clear"]',U.guard(async()=>{
-      if(!Store.list('gallery').length) return UI.toast('warn','Nothing to remove','Your gallery is already empty.');
-      if(await UI.confirm({title:'Remove all gallery images?',message:'Every image in your gallery will be deleted. This cannot be undone unless you have a backup.',confirmText:'Remove all'})){
-        Store.data.gallery=[]; Store.persist();
-        Store.log('Gallery cleared','All gallery images were removed','trash','dan');
-        Router.refresh(); UI.toast('ok','Gallery cleared','');
-      }
-    }));
-  }
-});
 /* ==================================================================
    MODULE: Testimonials
    ================================================================== */
@@ -2676,72 +2540,6 @@ Portal.register({
   }
 });
 
-/* ==================================================================
-   MODULE: Special offers
-   ================================================================== */
-Portal.register({
-  id:'offers', title:'Special Offers', sub:'Promotional banners', icon:'tag', group:'Website', instant:true,
-  badge(st){ return st.offersOn ? {text:String(st.offersOn)} : null; },
-  render(){
-    const list = Store.list('offers');
-    return `
-    ${H.head('Special Offers','Create promotional banners for finance deals, trade-in bonuses and monthly specials.',
-      `<button class="btn btn-pri" data-act="add">${ICON.plus} Create offer</button>`)}
-    ${list.length ? `<div class="grid g2" style="align-items:start">${list.map(o=>{
-      const expired = o.expiry && o.expiry < Date.now();
-      const days = o.expiry ? Math.ceil((o.expiry-Date.now())/86400000) : null;
-      return `<div class="card lift" data-id="${o.id}">
-        <div class="card-b">
-          <div class="offer-prev" style="background:linear-gradient(140deg,${o.colour}, ${o.colour}22);${o.active&&!expired?'':'filter:grayscale(.7);opacity:.75'}">
-            ${o.image?`<div class="bgimg" style="background-image:url('${o.image}')"></div>`:''}
-            <h4>${U.esc(o.title)}</h4>
-            <p>${U.esc(o.description)}</p>
-            ${o.btnText?`<span class="btn btn-sm" style="background:#fff;color:#111;border-color:transparent;font-weight:700">${U.esc(o.btnText)}</span>`:''}
-          </div>
-          <div class="row" style="margin-top:14px">
-            <span class="chip ${expired?'dan':o.active?'ok':''}"><i></i>${expired?'Expired':o.active?'Live on website':'Switched off'}</span>
-            ${o.demo?`<span class="chip dan">Sample</span>`:''}
-            ${o.expiry?`<span class="chip">${ICON.calendar} ${expired?'Ended '+U.date(o.expiry):days+' days left'}</span>`:''}
-          </div>
-        </div>
-        <div class="veh-acts">
-          <button class="btn btn-sm" data-oact="edit" data-id="${o.id}">${ICON.edit} Edit</button>
-          <button class="btn btn-sm ${o.active?'btn-warn':'btn-ok'}" data-oact="toggle" data-id="${o.id}">${o.active?ICON.x+' Switch off':ICON.check+' Switch on'}</button>
-          <button class="btn btn-sm" data-oact="dup" data-id="${o.id}">${ICON.copy}</button>
-          <button class="btn btn-sm btn-dan" data-oact="del" data-id="${o.id}">${ICON.trash}</button>
-        </div>
-      </div>`;
-    }).join('')}</div>`
-    : H.empty('tag','No offers yet','Create your first promotional banner to highlight a finance deal or monthly special.',
-        `<button class="btn btn-pri" data-act="add" style="margin-top:4px">${ICON.plus} Create offer</button>`)}`;
-  },
-  mount(root){
-    U.on(root,'click','[data-act="add"]',()=>Modules.offerForm(null));
-    U.on(root,'click','[data-oact]',U.guard(async(e,b)=>{
-      const o = Store.find('offers',b.dataset.id);
-      if(!o) return;
-      const act = b.dataset.oact;
-      if(act==='edit') return Modules.offerForm(o.id);
-      if(act==='toggle'){
-        Store.update('offers',o.id,{active:!o.active});
-        Store.log('Offer '+(o.active?'switched on':'switched off'),o.title,'tag',o.active?'ok':'warn');
-        Router.refresh(); UI.toast('ok',o.active?'Offer is live':'Offer switched off','');
-      }
-      if(act==='dup'){
-        const copy = Object.assign({},o,{id:U.id('o'),title:o.title+' (copy)',active:false,createdAt:Date.now()});
-        Store.insert('offers',copy);
-        Router.refresh(); UI.toast('ok','Offer duplicated','');
-      }
-      if(act==='del'){
-        if(await UI.confirm({title:'Delete this offer?',message:'"'+o.title+'" will be removed from your website.',confirmText:'Delete offer'})){
-          Store.remove('offers',o.id);
-          Store.log('Offer deleted',o.title,'trash','dan');
-          Router.refresh(); UI.toast('ok','Offer deleted','');
-        }
-      }
-    }));
-  }
-});
 
 /* ==================================================================
    MODULE: Contact details
@@ -2965,7 +2763,6 @@ Portal.register({
             <div class="kv">
               <div class="kv-row"><span>Data stored</span><b>${kb} KB</b></div>
               <div class="kv-row"><span>Vehicles</span><b>${st.total + st.archived}</b></div>
-              <div class="kv-row"><span>Gallery images</span><b>${st.gallery}</b></div>
               <div class="kv-row"><span>Enquiries</span><b>${st.enquiries}</b></div>
               <div class="kv-row"><span>Last saved</span><b>${U.dateTime(m.lastSaved)}</b></div>
             </div>
@@ -3068,7 +2865,7 @@ DB.size()    // storage used in bytes
     }));
     U.on(root,'click','[data-act="reset"]',U.guard(async()=>{
       if(await UI.confirm({title:'Reset the entire portal?',message:'All of your content, settings and images will be replaced with the starting sample data. This cannot be undone.',confirmText:'Reset everything'})){
-        DB.clear(); Store.init(); Shell.applyTheme(); Router.buildNav(); Router.go('dashboard');
+        DB.clear(); Store.init(); Router.buildNav(); Router.go('dashboard');
         UI.toast('ok','Portal reset','Everything is back to the starting content');
       }
     }));
@@ -3085,14 +2882,12 @@ Portal.register({
     const samples = {
       vehicles:Store.list('vehicles').filter(v=>v.demo).length,
       testimonials:Store.list('testimonials').filter(t=>t.demo).length,
-      offers:Store.list('offers').filter(o=>o.demo).length,
       enquiries:Store.list('enquiries').filter(e=>e.demo).length
     };
-    const sampleTotal = samples.vehicles+samples.testimonials+samples.offers+samples.enquiries;
+    const sampleTotal = samples.vehicles+samples.testimonials+samples.enquiries;
     const real = {
       vehicles:Store.list('vehicles').filter(v=>!v.demo).length,
       testimonials:Store.list('testimonials').filter(t=>!t.demo).length,
-      offers:Store.list('offers').filter(o=>!o.demo).length,
       enquiries:Store.list('enquiries').filter(e=>!e.demo).length
     };
 
@@ -3112,7 +2907,7 @@ Portal.register({
     </div>
 
     ${sampleTotal?`<div class="note dan" style="margin-bottom:16px">${ICON.warn}<div>
-      <b>This portal still contains ${sampleTotal} made up records.</b> ${samples.vehicles} vehicles, ${samples.testimonials} testimonials, ${samples.offers} offers and ${samples.enquiries} enquiries were written as placeholders. The names, reviews, phone numbers and the BMW VIN are not real. They are excluded from every database push, and you should delete them before going live.
+      <b>This portal still contains ${sampleTotal} made up records.</b> ${samples.vehicles} vehicles, ${samples.testimonials} testimonials and ${samples.enquiries} enquiries were written as placeholders. The names, reviews, phone numbers and the BMW VIN are not real. They are excluded from every database push, and you should delete them before going live.
       <div style="margin-top:11px"><button class="btn btn-sm btn-dan" data-act="killdemo">${ICON.trash} Delete all ${sampleTotal} sample records</button></div>
     </div></div>`:''}
 
@@ -3152,7 +2947,6 @@ Portal.register({
             <div class="kv">
               <div class="kv-row"><span>Your vehicles</span><b>${real.vehicles}</b></div>
               <div class="kv-row"><span>Your testimonials</span><b>${real.testimonials}</b></div>
-              <div class="kv-row"><span>Your offers</span><b>${real.offers}</b></div>
               <div class="kv-row"><span>Your enquiries</span><b>${real.enquiries}</b></div>
             </div>
             <button class="btn btn-pri btn-block ${authed?'':'hidden'}" data-act="push">${ICON.upload} Push my content to the database</button>
@@ -3165,7 +2959,7 @@ Portal.register({
       <div class="grid" style="gap:14px">
         ${H.card('How your data is protected','The rules the schema puts in place',`
           <div class="grid" style="gap:9px">
-            ${[['Visitors may read vehicles, testimonials and live offers','ok'],
+            ${[['Visitors may read vehicles and testimonials','ok'],
                ['Visitors may submit an enquiry and nothing more','ok'],
                ['Only your signed in account may read enquiries','ok'],
                ['Only your signed in account may add or change content','ok'],
@@ -3205,11 +2999,10 @@ const cars = await res.json();
 
         ${H.card('What lives where','',`
           <div class="kv">
-            <div class="kv-row"><span>Vehicles, testimonials, offers, enquiries</span><b>One row each</b></div>
-            <div class="kv-row"><span>Homepage, contact, appearance, gallery</span><b>site_settings</b></div>
+            <div class="kv-row"><span>Vehicles, testimonials, enquiries</span><b>One row each</b></div>
+            <div class="kv-row"><span>Homepage copy and contact details</span><b>site_settings</b></div>
             <div class="kv-row"><span>Vehicle photos</span><b>vehicle-images bucket</b></div>
-            <div class="kv-row"><span>Gallery photos</span><b>gallery bucket</b></div>
-            <div class="kv-row"><span>Logo, favicon, banners</span><b>branding bucket</b></div>
+            <div class="kv-row"><span>Testimonial photos</span><b>branding bucket</b></div>
             <div class="kv-row"><span>Your account password</span><b>Held by Supabase Auth</b></div>
           </div>`)}
       </div>
@@ -3274,7 +3067,7 @@ const cars = await res.json();
     U.on(root,'click','[data-act="push"]',U.guard(async()=>{
       const ok = await UI.confirm({
         title:'Push your content to the database?',
-        message:'Your own vehicles, testimonials, offers, enquiries and settings are written to Supabase. Records marked as samples are left behind. Anything already in the database with the same id is overwritten.',
+        message:'Your own vehicles, testimonials, enquiries and settings are written to Supabase. Records marked as samples are left behind. Anything already in the database with the same id is overwritten.',
         confirmText:'Push to database', tone:'warn'
       });
       if(!ok) return;
@@ -3282,7 +3075,7 @@ const cars = await res.json();
         const c = await Cloud.pushAll();
         Store.log('Content pushed to database',c.vehicles+' vehicles and '+c.enquiries+' enquiries uploaded','upload','ok');
         Store.persist(true); Router.refresh();
-        UI.toast('ok','Pushed to the database',c.vehicles+' vehicles, '+c.testimonials+' testimonials, '+c.offers+' offers');
+        UI.toast('ok','Pushed to the database',c.vehicles+' vehicles, '+c.testimonials+' testimonials, '+c.enquiries+' enquiries');
       }catch(err){ UI.toast('err','Push failed',err.message); }
     }));
 
@@ -3295,20 +3088,20 @@ const cars = await res.json();
       if(!ok) return;
       try{
         await Cloud.pullAll();
-        Shell.applyTheme(); Router.buildNav(); Router.go('database');
+        Router.buildNav(); Router.go('database');
         UI.toast('ok','Loaded from the database','');
       }catch(err){ UI.toast('err','Could not load',err.message); }
     }));
 
     U.on(root,'click','[data-act="killdemo"]',U.guard(async()=>{
-      const n = ['vehicles','testimonials','offers','enquiries'].reduce((a,k)=>a+Store.list(k).filter(r=>r.demo).length,0);
+      const n = ['vehicles','testimonials','enquiries'].reduce((a,k)=>a+Store.list(k).filter(r=>r.demo).length,0);
       const ok = await UI.confirm({
         title:'Delete all sample records?',
         message:'All '+n+' placeholder records are removed, including the fabricated vehicles, reviews and enquiries. Your own content and your settings are untouched.',
         confirmText:'Delete sample records'
       });
       if(!ok) return;
-      ['vehicles','testimonials','offers','enquiries'].forEach(k=>{
+      ['vehicles','testimonials','enquiries'].forEach(k=>{
         Store.replaceAll(k,Store.list(k).filter(r=>!r.demo));
       });
       Store.log('Sample records deleted','Placeholder content was cleared out','trash','warn');
@@ -3400,21 +3193,6 @@ create table if not exists public.testimonials (
   updated_at  timestamptz not null default now()
 );
 
-create table if not exists public.offers (
-  id           text primary key,
-  title        text not null default '',
-  description  text default '',
-  btn_text     text default '',
-  btn_link     text default '',
-  colour       text default '#0A84FF',
-  image        text default '',
-  active       boolean not null default false,
-  expiry       timestamptz,
-  sort_order   int not null default 0,
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
-);
-
 create table if not exists public.enquiries (
   id          text primary key,
   name        text not null default '',
@@ -3457,7 +3235,7 @@ $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['site_settings','vehicles','testimonials','offers','enquiries']
+  foreach t in array array['site_settings','vehicles','testimonials','enquiries']
   loop
     execute format('drop trigger if exists touch_%1$s on public.%1$s', t);
     execute format(
@@ -3492,7 +3270,6 @@ grant execute on function public.is_owner() to authenticated;
 alter table public.site_settings enable row level security;
 alter table public.vehicles      enable row level security;
 alter table public.testimonials  enable row level security;
-alter table public.offers        enable row level security;
 alter table public.enquiries     enable row level security;
 alter table public.activity_log  enable row level security;
 
@@ -3503,7 +3280,7 @@ begin
     select schemaname, tablename, policyname
     from pg_policies
     where schemaname = 'public'
-      and tablename in ('site_settings','vehicles','testimonials','offers','enquiries','activity_log','portal_owners')
+      and tablename in ('site_settings','vehicles','testimonials','enquiries','activity_log','portal_owners')
   loop
     execute format('drop policy %I on %I.%I', r.policyname, r.schemaname, r.tablename);
   end loop;
@@ -3513,24 +3290,20 @@ create policy "owner reads own membership" on public.portal_owners
   for select to authenticated using (user_id = auth.uid());
 
 create policy "public reads settings"     on public.site_settings for select to anon
-  using (key in ('homepage','contact','appearance','gallery'));
+  using (key in ('homepage','contact'));
 create policy "public reads vehicles"     on public.vehicles      for select to anon using (archived = false);
 create policy "public reads testimonials" on public.testimonials  for select to anon using (true);
-create policy "public reads live offers"  on public.offers        for select to anon
-  using (active = true and (expiry is null or expiry > now()));
 
 create policy "public submits enquiry" on public.enquiries for insert to anon with check (true);
 
 create policy "owner manages settings"     on public.site_settings for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages vehicles"     on public.vehicles      for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages testimonials" on public.testimonials  for all to authenticated using (public.is_owner()) with check (public.is_owner());
-create policy "owner manages offers"       on public.offers        for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages enquiries"    on public.enquiries     for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages activity"     on public.activity_log  for all to authenticated using (public.is_owner()) with check (public.is_owner());
 
 insert into storage.buckets (id, name, public)
 values ('vehicle-images','vehicle-images',true),
-       ('gallery','gallery',true),
        ('branding','branding',true)
 on conflict (id) do update set public = true;
 
@@ -3547,13 +3320,13 @@ begin
 end $$;
 
 create policy "supreme public read" on storage.objects for select to anon, authenticated
-  using (bucket_id in ('vehicle-images','gallery','branding'));
+  using (bucket_id in ('vehicle-images','branding'));
 create policy "supreme owner insert" on storage.objects for insert to authenticated
-  with check (bucket_id in ('vehicle-images','gallery','branding') and public.is_owner());
+  with check (bucket_id in ('vehicle-images','branding') and public.is_owner());
 create policy "supreme owner update" on storage.objects for update to authenticated
-  using (bucket_id in ('vehicle-images','gallery','branding') and public.is_owner());
+  using (bucket_id in ('vehicle-images','branding') and public.is_owner());
 create policy "supreme owner delete" on storage.objects for delete to authenticated
-  using (bucket_id in ('vehicle-images','gallery','branding') and public.is_owner());
+  using (bucket_id in ('vehicle-images','branding') and public.is_owner());
 
 create or replace view public.website_vehicles
   with (security_invoker = true) as
@@ -3568,7 +3341,7 @@ create or replace view public.website_vehicles
 grant usage on schema public to anon, authenticated;
 
 grant select on public.site_settings, public.testimonials,
-                public.offers, public.website_vehicles to anon;
+                public.website_vehicles to anon;
 
 revoke select on public.vehicles from anon;
 grant select (id, name, brand, model, year, mileage, transmission, fuel, body, colour,
@@ -3580,7 +3353,7 @@ grant insert on public.enquiries to anon;
 
 grant select, insert, update, delete
   on public.site_settings, public.vehicles, public.testimonials,
-     public.offers, public.enquiries, public.activity_log to authenticated;
+     public.enquiries, public.activity_log to authenticated;
 grant select on public.website_vehicles, public.portal_owners to authenticated;
 `;
 
@@ -3931,7 +3704,6 @@ const Modules = {
       body:`<div class="preview">
         <div class="preview-bar"><i></i><i></i><i></i><span>supremeautonorth.co.za</span></div>
         <div class="hero-prev" style="padding:52px 26px">
-          ${h.heroImage?`<div class="bgimg" style="background-image:url('${h.heroImage}')"></div>`:''}
           ${h.heroBadge?`<span class="chip acc" style="position:relative;margin-bottom:14px">${U.esc(h.heroBadge)}</span>`:''}
           <h4 style="font-size:30px">${U.esc(h.heroTitle)}</h4>
           <p style="max-width:520px;margin:12px auto 0">${U.esc(h.heroSubtitle)}</p>
@@ -3978,75 +3750,6 @@ const Modules = {
       if(editing){ Store.update('testimonials',id,draft); Store.log('Testimonial updated','Review from '+draft.name,'star'); }
       else{ Store.insert('testimonials',draft); Store.log('Testimonial added','Review from '+draft.name,'star','ok'); }
       m.close(); Router.refresh(); UI.toast('ok',editing?'Testimonial saved':'Testimonial added',draft.name);
-    });
-  },
-
-  /* ---------- offers -------------------------------------------- */
-  offerForm(id){
-    const editing = !!id;
-    const o = editing ? Object.assign({},Store.find('offers',id)) : {
-      title:'', description:'', btnText:'Find out more', btnLink:'#contact', colour:'#0A84FF',
-      image:'', active:true, expiry:Date.now()+86400000*30
-    };
-    const draft = Object.assign({},o);
-    const colours = ['#0A84FF','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#0F172A'];
-
-    const m = UI.modal({
-      size:'md',
-      title: editing ? 'Edit offer' : 'Create a special offer',
-      sub:'Promotional banners appear near the top of your homepage.',
-      body:`<div class="grid" style="gap:14px">
-        ${H.field('Offer title',H.input('title',draft.title,'January finance special'))}
-        ${H.field('Description',H.ta('description',draft.description,'Zero deposit finance available on selected vehicles.',3))}
-        <div class="grid g2">
-          ${H.field('Button text',H.input('btnText',draft.btnText,'Apply for finance'))}
-          ${H.field('Button link',H.input('btnLink',draft.btnLink,'#finance'))}
-        </div>
-        <div class="grid g2">
-          ${H.field('Expiry date',`<input class="inp" data-k="expiry" type="date" value="${U.dateInput(draft.expiry)}">`,'The banner hides itself after this date.')}
-          ${H.field('Banner colour',`<div class="swatches" style="padding-top:4px">
-            ${colours.map(c=>`<button class="sw ${draft.colour.toLowerCase()===c.toLowerCase()?'on':''}" data-oc="${c}" style="background:${c}"></button>`).join('')}
-            <input class="color-in" type="color" data-k="colour" value="${draft.colour}">
-          </div>`)}
-        </div>
-        ${H.field('Background image',`<div id="offImg"></div>`,'Optional. A subtle image behind the text.','optional')}
-        ${H.toggleCard('active',draft.active,'Offer is live','Show this banner on your website now','ok','globe')}
-        <div class="sep" style="margin:2px 0"></div>
-        <label style="font-size:12px;font-weight:600;color:var(--text-2)">Preview</label>
-        <div id="offPrev"></div>
-      </div>`,
-      footer:`<button class="btn" data-close>Cancel</button>
-              <div class="sp"><button class="btn btn-pri" data-save>${ICON.check} ${editing?'Save changes':'Create offer'}</button></div>`
-    });
-
-    const prev = ()=>{
-      U.el('#offPrev',m.el).innerHTML = `
-        <div class="offer-prev" style="background:linear-gradient(140deg,${draft.colour},${draft.colour}22)">
-          ${draft.image?`<div class="bgimg" style="background-image:url('${draft.image}')"></div>`:''}
-          <h4>${U.esc(draft.title||'Your offer title')}</h4>
-          <p>${U.esc(draft.description||'Your offer description appears here.')}</p>
-          ${draft.btnText?`<span class="btn btn-sm" style="background:#fff;color:#111;border-color:transparent;font-weight:700">${U.esc(draft.btnText)}</span>`:''}
-        </div>`;
-    };
-    H.bind(m.el,(k,v)=>{
-      draft[k] = k==='expiry' ? (v?new Date(v).getTime():null) : v;
-      prev();
-    },()=>{});
-    U.els('[data-k]',m.el).forEach(el=>el.addEventListener('input',prev));
-    U.on(m.el,'click','[data-oc]',(e,b)=>{
-      draft.colour = b.dataset.oc;
-      U.els('[data-oc]',m.el).forEach(x=>x.classList.toggle('on',x.dataset.oc===draft.colour));
-      const ci = U.el('[data-k="colour"]',m.el); if(ci) ci.value = draft.colour;
-      prev();
-    });
-    UI.imagePicker(U.el('#offImg',m.el),{value:draft.image,label:'Upload image',h:80,max:1400,onChange:v=>{draft.image=v;prev();}});
-    prev();
-
-    UI.once(U.el('[data-save]',m.el),()=>{
-      if(!draft.title.trim()) return UI.toast('err','A title is needed','Give your offer a short title.');
-      if(editing){ Store.update('offers',id,draft); Store.log('Offer updated',draft.title,'tag'); }
-      else{ Store.insert('offers',draft); Store.log('Offer created',draft.title,'tag','ok'); }
-      m.close(); Router.refresh(); UI.toast('ok',editing?'Offer saved':'Offer created',draft.title);
     });
   },
 
@@ -4218,7 +3921,7 @@ const Modules = {
             UI.toast('ok','Access granted','Loading your content from the database');
             try{
               await Cloud.pullAll({force:true});
-              Shell.applyTheme(); Router.buildNav(); Router.go('dashboard');
+              Router.buildNav(); Router.go('dashboard');
             }catch(err){ UI.toast('err','Could not load',err.message); }
           }else{
             btn.disabled = false; btn.innerHTML = ICON.refresh+' Check again';
@@ -4281,23 +3984,18 @@ const Modules = {
       '  return rows[0] || null;',
       '}',
       '',
-      '/* ---- homepage text, contact details, gallery, colours ---- */',
+      '/* ---- homepage text and contact details ---- */',
       'async function loadSettings(){',
       "  const res = await fetch(SUPABASE_URL + '/rest/v1/site_settings?select=key,value', { headers });",
       '  const rows = await res.json();',
       '  const out = {};',
       '  rows.forEach(r => out[r.key] = r.value);',
-      '  return out;   // out.homepage, out.contact, out.appearance, out.gallery',
+      '  return out;   // out.homepage, out.contact',
       '}',
       '',
-      '/* ---- testimonials and any running promotion ---- */',
+      '/* ---- testimonials ---- */',
       'async function loadTestimonials(){',
       "  const res = await fetch(SUPABASE_URL + '/rest/v1/testimonials?select=*&order=sort_order.asc', { headers });",
-      '  return res.json();',
-      '}',
-      'async function loadOffers(){',
-      '  /* the database only returns offers that are switched on and unexpired */',
-      "  const res = await fetch(SUPABASE_URL + '/rest/v1/offers?select=*', { headers });",
       '  return res.json();',
       '}',
       '',
@@ -4356,7 +4054,7 @@ const Modules = {
       Store.data = Store._merge(SEED(),parsed);
       Store.log('Backup restored','Portal data was restored from a backup file','upload','ok');
       Store.persist(true);
-      Shell.applyTheme(); Router.buildNav(); Router.go('dashboard');
+      Router.buildNav(); Router.go('dashboard');
       UI.toast('ok','Backup restored','Your portal has been updated');
     };
     fr.readAsText(file);
@@ -4489,13 +4187,6 @@ const Router = {
 const Shell = {
   openSidebar(){ U.el('#sidebar').classList.add('on'); U.el('#scrim').classList.add('on'); },
   closeSidebar(){ U.el('#sidebar').classList.remove('on'); U.el('#scrim').classList.remove('on'); },
-  applyTheme(){
-    const a = Store.data.appearance;
-    document.documentElement.style.setProperty('--accent',a.accent||'#0A84FF');
-    document.documentElement.style.setProperty('--accent-glow',(a.accent||'#0A84FF')+'6B');
-    document.documentElement.style.setProperty('--accent-soft',(a.accent||'#0A84FF')+'24');
-    document.documentElement.style.setProperty('--success',a.success||'#10B981');
-  },
   login(){
     if(!Cloud.authed) return Shell.lock();      /* never open the portal unauthenticated */
     U.el('#login').classList.add('hide');
@@ -4518,7 +4209,7 @@ const Shell = {
             UI.toast('warn','Your database is empty','Open Database and push your content to fill it');
             return;
           }
-          Shell.applyTheme(); Router.refresh();
+          Router.refresh();
           UI.toast('ok','Loaded from database','Your content is up to date');
         })
         .catch(err=>{
@@ -4573,8 +4264,7 @@ const Shell = {
     U.el('span',pill).textContent = txt;
   },
   init(){
-    Shell.applyTheme();
-    U.el('#burger').addEventListener('click',Shell.openSidebar);
+        U.el('#burger').addEventListener('click',Shell.openSidebar);
     U.el('#scrim').addEventListener('click',Shell.closeSidebar);
     U.el('#btnLogout').addEventListener('click',async()=>{
       const pending = Cloud.queue.length;

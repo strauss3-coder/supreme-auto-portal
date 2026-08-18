@@ -141,7 +141,6 @@ To sync a new section to the database, add a table to the schema and an entry to
 - **`supabase-security-patch.sql` has not been run.** Until it is, an anonymous visitor can read the `vin` column straight off the `vehicles` table, and the `analytics` and `meta` settings documents are publicly readable. No VIN is filled in yet so nothing is exposed today, but the portal's own form promises that field is private. Run it in the SQL Editor and confirm afterwards that `/rest/v1/vehicles?select=vin` fails.
 - The Google rating and review count on the website (4.0 stars, 51 reviews) are hardcoded in three places, including the `aggregateRating` structured data. They have never been checked against the real Google Business Profile.
 - No audit trail of who changed what. `activity_log` records the change but not the account.
-- Offers and Gallery can be edited in the portal but no website section renders them yet.
 - No image cropping. Photos are resized but not cropped.
 - No audit trail of who changed what, since there is only one account.
 - Signing in requires internet. Resuming an existing session does not.

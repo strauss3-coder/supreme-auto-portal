@@ -50,21 +50,6 @@ create table if not exists public.testimonials (
   updated_at  timestamptz not null default now()
 );
 
-create table if not exists public.offers (
-  id           text primary key,
-  title        text not null default '',
-  description  text default '',
-  btn_text     text default '',
-  btn_link     text default '',
-  colour       text default '#0A84FF',
-  image        text default '',
-  active       boolean not null default false,
-  expiry       timestamptz,
-  sort_order   int not null default 0,
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
-);
-
 create table if not exists public.enquiries (
   id          text primary key,
   name        text not null default '',
@@ -107,7 +92,7 @@ $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['site_settings','vehicles','testimonials','offers','enquiries']
+  foreach t in array array['site_settings','vehicles','testimonials','enquiries']
   loop
     execute format('drop trigger if exists touch_%1$s on public.%1$s', t);
     execute format(
@@ -142,7 +127,6 @@ grant execute on function public.is_owner() to authenticated;
 alter table public.site_settings enable row level security;
 alter table public.vehicles      enable row level security;
 alter table public.testimonials  enable row level security;
-alter table public.offers        enable row level security;
 alter table public.enquiries     enable row level security;
 alter table public.activity_log  enable row level security;
 
@@ -153,7 +137,7 @@ begin
     select schemaname, tablename, policyname
     from pg_policies
     where schemaname = 'public'
-      and tablename in ('site_settings','vehicles','testimonials','offers','enquiries','activity_log','portal_owners')
+      and tablename in ('site_settings','vehicles','testimonials','enquiries','activity_log','portal_owners')
   loop
     execute format('drop policy %I on %I.%I', r.policyname, r.schemaname, r.tablename);
   end loop;
@@ -163,24 +147,20 @@ create policy "owner reads own membership" on public.portal_owners
   for select to authenticated using (user_id = auth.uid());
 
 create policy "public reads settings"     on public.site_settings for select to anon
-  using (key in ('homepage','contact','appearance','gallery'));
+  using (key in ('homepage','contact'));
 create policy "public reads vehicles"     on public.vehicles      for select to anon using (archived = false);
 create policy "public reads testimonials" on public.testimonials  for select to anon using (true);
-create policy "public reads live offers"  on public.offers        for select to anon
-  using (active = true and (expiry is null or expiry > now()));
 
 create policy "public submits enquiry" on public.enquiries for insert to anon with check (true);
 
 create policy "owner manages settings"     on public.site_settings for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages vehicles"     on public.vehicles      for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages testimonials" on public.testimonials  for all to authenticated using (public.is_owner()) with check (public.is_owner());
-create policy "owner manages offers"       on public.offers        for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages enquiries"    on public.enquiries     for all to authenticated using (public.is_owner()) with check (public.is_owner());
 create policy "owner manages activity"     on public.activity_log  for all to authenticated using (public.is_owner()) with check (public.is_owner());
 
 insert into storage.buckets (id, name, public)
 values ('vehicle-images','vehicle-images',true),
-       ('gallery','gallery',true),
        ('branding','branding',true)
 on conflict (id) do update set public = true;
 
@@ -197,13 +177,13 @@ begin
 end $$;
 
 create policy "supreme public read" on storage.objects for select to anon, authenticated
-  using (bucket_id in ('vehicle-images','gallery','branding'));
+  using (bucket_id in ('vehicle-images','branding'));
 create policy "supreme owner insert" on storage.objects for insert to authenticated
-  with check (bucket_id in ('vehicle-images','gallery','branding') and public.is_owner());
+  with check (bucket_id in ('vehicle-images','branding') and public.is_owner());
 create policy "supreme owner update" on storage.objects for update to authenticated
-  using (bucket_id in ('vehicle-images','gallery','branding') and public.is_owner());
+  using (bucket_id in ('vehicle-images','branding') and public.is_owner());
 create policy "supreme owner delete" on storage.objects for delete to authenticated
-  using (bucket_id in ('vehicle-images','gallery','branding') and public.is_owner());
+  using (bucket_id in ('vehicle-images','branding') and public.is_owner());
 
 create or replace view public.website_vehicles
   with (security_invoker = true) as
@@ -218,7 +198,7 @@ create or replace view public.website_vehicles
 grant usage on schema public to anon, authenticated;
 
 grant select on public.site_settings, public.testimonials,
-                public.offers, public.website_vehicles to anon;
+                public.website_vehicles to anon;
 
 revoke select on public.vehicles from anon;
 grant select (id, name, brand, model, year, mileage, transmission, fuel, body, colour,
@@ -230,5 +210,5 @@ grant insert on public.enquiries to anon;
 
 grant select, insert, update, delete
   on public.site_settings, public.vehicles, public.testimonials,
-     public.offers, public.enquiries, public.activity_log to authenticated;
+     public.enquiries, public.activity_log to authenticated;
 grant select on public.website_vehicles, public.portal_owners to authenticated;
