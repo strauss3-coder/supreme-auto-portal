@@ -1549,8 +1549,8 @@ const SEED = () => ({
       facebook:'https://facebook.com/PretoriaSupremeAuto',
       instagram:'https://instagram.com/pretoriasupremeauto',
       tiktok:'https://tiktok.com/@supremeautoa1',
-      youtube:'',
-      x:''
+      autotrader:'',
+      cars:''
     }
   },
   enquiries:[],
@@ -1565,6 +1565,11 @@ const Store = {
   init(){
     const saved = DB.read();
     this.data = saved ? this._merge(SEED(),saved) : SEED();
+    /* YouTube and X were replaced by AutoTrader and Cars.co.za. Drop the old
+       keys on load so they are not written back to the settings document the
+       next time contact details are saved. */
+    const soc = this.data.contact && this.data.contact.social;
+    if(soc){ delete soc.youtube; delete soc.x; }
     if(!saved){
       this.log('Portal created','Your Supreme Auto portal is ready to use','sparkles');
       this.persist(true);
@@ -2570,8 +2575,8 @@ Portal.register({
             ${H.field('Facebook page',H.input('social.facebook',c.social.facebook,'https://facebook.com/...'))}
             ${H.field('Instagram profile',H.input('social.instagram',c.social.instagram,'https://instagram.com/...'))}
             ${H.field('TikTok profile',H.input('social.tiktok',c.social.tiktok,'https://tiktok.com/@...'))}
-            ${H.field('YouTube channel',H.input('social.youtube',c.social.youtube,'Optional'))}
-            ${H.field('X profile',H.input('social.x',c.social.x,'Optional'))}
+            ${H.field('AutoTrader profile',H.input('social.autotrader',c.social.autotrader,'https://www.autotrader.co.za/dealer/...'))}
+            ${H.field('Cars.co.za profile',H.input('social.cars',c.social.cars,'https://www.cars.co.za/dealers/...'))}
           </div>`)}
       </div>
       <div class="grid" style="gap:14px">
