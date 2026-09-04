@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supreme Auto · Website Solution Overview</title>
+<meta name="description" content="What has been built for Supreme Auto: a custom vehicle dealership website, the experience it gives visitors, and the value each part delivers.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B0B0B; --ink-2:#111113; --ink-3:#17171A;
+  --surface:rgba(255,255,255,.035); --surface-2:rgba(255,255,255,.055);
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.16);
+  --text:#F3F2EF; --muted:#A2A099; --faint:#78766F;
+  --yellow:#FFF112; --red:#EB3336; --red-soft:#FF6E70;
+  --display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  --body:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --wrap:1000px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);
+  font-size:16.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px}
+
+/* ---------- cover ---------- */
+.cover{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  padding:clamp(56px,9vw,110px) 0 clamp(44px,6vw,72px)}
+.cover::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(900px 420px at 12% -10%,rgba(255,241,18,.10),transparent 60%),
+             radial-gradient(700px 380px at 88% 8%,rgba(235,51,54,.10),transparent 62%)}
+.cover .wrap{position:relative}
+.cover img.logo{height:96px;width:auto;display:block;margin-bottom:34px}
+.eyebrow{font-family:var(--display);font-size:11.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--yellow);margin-bottom:16px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,60px);line-height:1.04;
+  letter-spacing:-.025em;margin:0 0 20px;text-wrap:balance}
+.lede{font-size:clamp(17px,2.1vw,20px);color:var(--muted);max-width:62ch;margin:0}
+.cover-meta{display:flex;flex-wrap:wrap;gap:10px 30px;margin-top:38px;padding-top:26px;
+  border-top:1px solid var(--line);font-family:var(--display);font-size:12.5px;
+  letter-spacing:.06em;color:var(--faint)}
+.cover-meta b{color:var(--text);font-weight:600}
+
+/* ---------- sections ---------- */
+section{padding:clamp(46px,6vw,78px) 0;border-bottom:1px solid var(--line)}
+.sec-num{font-family:var(--display);font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--red-soft);margin-bottom:12px}
+h2{font-family:var(--display);font-weight:600;font-size:clamp(25px,3.6vw,38px);line-height:1.12;
+  letter-spacing:-.02em;margin:0 0 22px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:-.01em;margin:34px 0 12px}
+h4{font-family:var(--display);font-weight:600;font-size:15.5px;margin:24px 0 9px;color:var(--text)}
+p{margin:0 0 16px;max-width:70ch;color:var(--muted)}
+p strong,li strong{color:var(--text);font-weight:600}
+ul{margin:0 0 18px;padding-left:20px;max-width:70ch;color:var(--muted)}
+li{margin-bottom:8px}
+li::marker{color:var(--faint)}
+a{color:var(--yellow);text-underline-offset:3px}
+
+/* ---------- feature grid ---------- */
+.grid{display:grid;gap:16px;margin:24px 0}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;
+  transition:border-color .3s,background .3s}
+.card:hover{border-color:var(--line-2);background:var(--surface-2)}
+.card h4{margin:0 0 8px}
+.card p{margin:0;font-size:15px}
+.card .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;margin-bottom:14px;
+  background:rgba(255,241,18,.1);border:1px solid rgba(255,241,18,.22)}
+.card .ic svg{width:17px;height:17px;stroke:var(--yellow);fill:none;stroke-width:1.9}
+
+/* ---------- tables ---------- */
+.tbl{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px}
+th{text-align:left;font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);font-weight:600;padding:13px 18px;background:rgba(255,255,255,.03);
+  border-bottom:1px solid var(--line)}
+td{padding:13px 18px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td strong{color:var(--text)}
+
+/* ---------- callouts ---------- */
+.note{border-left:2px solid var(--yellow);background:rgba(255,241,18,.05);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:22px 0;max-width:70ch}
+.note.red{border-left-color:var(--red);background:rgba(235,51,54,.06)}
+.note p{margin:0;color:var(--text);font-size:15.5px}
+.note p+p{margin-top:10px}
+.note b{font-family:var(--display)}
+
+.stat-row{display:flex;flex-wrap:wrap;gap:14px;margin:26px 0}
+.stat{flex:1 1 150px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.stat b{display:block;font-family:var(--display);font-size:27px;font-weight:700;color:var(--yellow);
+  letter-spacing:-.02em;line-height:1.1}
+.stat span{display:block;font-size:13px;color:var(--faint);margin-top:5px}
+
+footer{padding:52px 0 70px;color:var(--faint);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+footer img{height:38px;width:auto;opacity:.85}
+
+/* ---------- print / PDF ---------- */
+@media print{
+  :root{--ink:#fff;--text:#111;--muted:#333;--faint:#666;--line:#ddd;--surface:#fafafa}
+  body{background:#fff;color:#111;font-size:11pt;line-height:1.55}
+  .cover::before{display:none}
+  section{page-break-inside:auto;border-bottom:1px solid #ddd;padding:22px 0}
+  h2{page-break-after:avoid}
+  h3,h4{page-break-after:avoid}
+  .card,.note,.tbl,.stat{page-break-inside:avoid}
+  .eyebrow{color:#8a7a00}
+  .sec-num{color:#b3272a}
+  .stat b{color:#8a7a00}
+  a{color:#111;text-decoration:none}
+  .cover img.logo{height:70px}
+}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="wrap">
+    <img class="logo" src="logo.png" alt="Supreme Auto">
+    <div class="eyebrow">Website Solution Overview</div>
+    <h1>A digital showroom built around Supreme Auto.</h1>
+    <p class="lede">What has been designed and delivered, what a customer experiences from the moment the site loads, and the value each part returns to the business.</p>
+    <div class="cover-meta">
+      <span>Prepared for <b>Supreme Auto</b></span>
+      <span>Pretoria North, South Africa</span>
+      <span><b>supremeautonorth.co.za</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- 01 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 01</div>
+    <h2>Executive overview</h2>
+    <p>Supreme Auto is an independent premium dealership in Pretoria North, trading on hand-picked stock, straight pricing and relationships that outlast the sale. The website had to carry that reputation into a channel where most buyers now make their shortlist before they ever phone a dealership.</p>
+    <p><strong>This is not a template.</strong> Nothing here was bought from a marketplace and re-skinned. The layout, the typography, the vehicle cards, the finance journey, the enquiry flow and the way stock is managed were all designed and written specifically for how Supreme Auto sells cars.</p>
+    <p>The result is a platform with three jobs: establish credibility in the first few seconds, let a buyer find the right vehicle without friction, and turn that interest into a conversation with the sales floor. It runs equally well on a desktop in an office, a tablet on a couch, and — where the majority of traffic actually comes from — a phone.</p>
+    <div class="stat-row">
+      <div class="stat"><b>1</b><span>Custom-built platform</span></div>
+      <div class="stat"><b>9</b><span>Homepage sections</span></div>
+      <div class="stat"><b>3</b><span>Ways to enquire</span></div>
+      <div class="stat"><b>100%</b><span>Stock managed in-house</span></div>
+    </div>
+    <p>Critically, the dealership is not dependent on a developer to keep it current. Stock, prices, photographs, customer reviews, contact details, trading hours and the homepage message are all controlled from a private management portal. A car sold this morning can be marked sold before lunch, by staff, without a phone call to anyone.</p>
+  </div>
+</section>
+
+<!-- 02 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 02</div>
+    <h2>The homepage experience</h2>
+    <p>The homepage is a single, continuous journey rather than a set of disconnected pages. A visitor scrolls once, from first impression to enquiry, and every section along the way answers the question the previous one raised.</p>
+
+    <h3>First impression</h3>
+    <p>The page opens on a full-height hero: a showroom photograph, darkened and softly lit, with the headline set over it. The image is flagged as high priority so it is fetched before anything else — the visitor sees the dealership, not an empty box waiting to fill.</p>
+    <p>The Supreme Auto identity sits top-left as a fixed header: the <strong>SA</strong> emblem in the brand's yellow and red, a divider, then the name and <em>Pretoria North</em> beneath it. The emblem is served at three pixel densities so it stays crisp on a modern phone or a Retina laptop rather than softening. Navigation runs across the centre, with <em>Contact Us</em> and <em>View Inventory</em> anchored right, so the two things a buyer most wants are always one tap away.</p>
+
+    <h3>Motion, used with restraint</h3>
+    <p>Nothing moves for the sake of moving. Content fades and lifts into place as it enters view, staggered slightly so a section assembles rather than snapping in. The hero carries a gentle parallax on scroll, and a soft light follows the cursor on desktop, giving the dark surfaces a sense of depth. Headline figures count up when they reach the screen instead of sitting static.</p>
+    <div class="note">
+      <p>Every one of these effects respects the operating system's <b>reduce motion</b> setting. A visitor who has asked their device to limit animation gets a calm, still page — the content is identical, the movement simply steps aside.</p>
+    </div>
+
+    <h3>Trust, built in layers</h3>
+    <p>Below the hero the page states its numbers — vehicles sold and financing partners — as animated counters, both editable by the dealership. The inventory follows immediately, because stock is the reason people come. Then the story: who Supreme Auto is, what it does, which banks it works with, how finance is arranged, and what customers have said. Contact sits last, once the case has been made.</p>
+
+    <div class="grid g3">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.6V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.6"/></svg></div>
+        <h4>Fixed navigation</h4>
+        <p>The header stays with the visitor and condenses on scroll, so the menu and both calls to action are always reachable.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg></div>
+        <h4>Priority imagery</h4>
+        <p>The hero loads first; everything below it loads only as it is needed, so the first screen is quick even on mobile data.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg></div>
+        <h4>One continuous scroll</h4>
+        <p>No page reloads between sections. The journey from first look to enquiry never breaks stride.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 03</div>
+    <h2>Every section, and what it does for a buyer</h2>
+    <p>The site is built as one primary page with nine sections, supported by three standalone pages. This is deliberate: a buyer comparing cars should not lose their place to a page load. Below is each section and the job it performs.</p>
+
+    <h3>Inventory</h3>
+    <p>The heart of the site. Every vehicle appears as a card carrying its own photographs, year, mileage, transmission, fuel and engine, and price. Cards with several photographs become a small carousel — arrows on desktop, swipe on a phone, dots showing position — so a buyer can walk around a car without leaving the grid. Only the first photograph is downloaded up front; the rest arrive as they are needed.</p>
+    <p>Above the grid sits a seven-field filter: make, model, price band, year, body type, transmission and fuel. <strong>Results narrow the instant a choice is made</strong> — there is no search button to hunt for. Choosing a make automatically restricts the model list to that make's stock, so a buyer cannot filter their way into an empty result by accident. A single <em>Clear Filters</em> control resets everything.</p>
+    <p>Cars sold or reserved stay visible with a badge rather than disappearing. A busy floor is social proof; an empty one is not.</p>
+
+    <h3>Vehicle detail</h3>
+    <p>Selecting any vehicle opens a detail panel in place, showing the full photograph set with selectable thumbnails, the complete specification, and the description written for that car in the portal. From here a buyer can start a WhatsApp enquiry about that specific vehicle, with its details already filled in.</p>
+
+    <h3>About</h3>
+    <p>A short, human statement of who the dealership is, alongside a photograph of the team and a checklist of what buyers get: inspected vehicles, finance assistance, nationwide delivery. The headline statistics sit here as animated counters.</p>
+
+    <h3>Services</h3>
+    <p>Six services, each on its own card: <strong>Vehicle Sales, Trade-Ins, Vehicle Finance, Vehicle Sourcing, Warranty Options</strong> and <strong>After-Sales Support</strong>. This section exists to answer a question buyers rarely ask out loud — <em>is this a dealership that will still take my call next year?</em></p>
+
+    <h3>Financing partners</h3>
+    <p>Five named institutions — <strong>ABSA Bank, WesBank, Standard Bank, MFC</strong> and <strong>Marquis Finance</strong>. Naming real banks does more for credibility than any adjective, and it pre-answers the affordability question that stops many buyers from enquiring at all.</p>
+
+    <h3>Finance application</h3>
+    <p>A five-step guided application covering personal details, employment and income, the vehicle and deposit, trade-in, and a final review. Progress is saved as the applicant works, so an interruption does not cost them the form. The last step shows exactly what will be sent before anything is submitted.</p>
+
+    <h3>Testimonials</h3>
+    <p>A carousel of real customer reviews, managed from the portal. Reviews that genuinely came from Google carry a <strong>Verified Google Review</strong> badge; those collected directly do not. That distinction is enforced by the system, not left to whoever is typing — a review cannot be dressed up as something it is not.</p>
+
+    <h3>Contact</h3>
+    <p>Covered in full in Section 06.</p>
+
+    <h3>Supporting pages</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Page</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Privacy Policy</strong></td><td>States plainly what the site collects, where enquiries are stored, who can read them, and how to ask for deletion. Written to match what the site actually does.</td></tr>
+          <tr><td><strong>Terms &amp; Conditions</strong></td><td>Covers vehicle listings, pricing, finance applications and the limits of the enquiry handoff.</td></tr>
+          <tr><td><strong>404 page</strong></td><td>A branded page that routes a lost visitor back to the homepage or the inventory instead of dead-ending them.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 04 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 04</div>
+    <h2>How the services are presented</h2>
+    <p>The six services are laid out as a responsive card grid — three across on a desktop, reflowing to two and then one as the screen narrows. Each card pairs a line icon with a short, plain description.</p>
+    <p>The icons are drawn as vectors in a single consistent stroke weight, not pulled from a stock icon pack. They scale to any size without blurring and they share a visual language with the rest of the interface, which is a large part of why the site reads as designed rather than assembled.</p>
+    <p>Cards respond on hover with a soft lift and a brightening border. On touch devices, where hover does not exist, the cards are simply legible and well-spaced — the interaction degrades cleanly instead of leaving mobile users with something that looks broken.</p>
+    <div class="note">
+      <p><b>Why this matters commercially.</b> Most dealership sites list stock and stop. Stating that you source vehicles to order, handle trade-ins, arrange finance and support the car afterwards reframes the business from a lot with cars on it into a dealership that manages the whole transaction. That is a materially different proposition, and it costs nothing to state.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 05</div>
+    <h2>Imagery and media</h2>
+    <p>Photography carries more weight than copy on a dealership site. A buyer decides whether a car is worth a phone call from the pictures.</p>
+    <div class="stat-row">
+      <div class="stat"><b>70</b><span>Vehicle photographs live</span></div>
+      <div class="stat"><b>5</b><span>Photographs per vehicle</span></div>
+      <div class="stat"><b>1</b><span>Team photograph</span></div>
+      <div class="stat"><b>136&nbsp;KB</b><span>Hero image weight</span></div>
+    </div>
+    <h4>How images are handled</h4>
+    <ul>
+      <li><strong>Uploaded by staff, resized automatically.</strong> Photographs added through the portal are scaled down before upload, so a large phone photograph does not become a slow page.</li>
+      <li><strong>Loaded only when needed.</strong> Every image below the first screen waits until the visitor scrolls near it. Browsing the grid without opening a carousel costs one image per card, not five.</li>
+      <li><strong>Dimensions reserved in advance.</strong> Width and height are declared on every image, so the page does not jump around as pictures arrive — a common irritation that also harms search ranking.</li>
+      <li><strong>Graceful when an image is missing.</strong> If a photograph fails to load, it removes itself rather than leaving a broken icon.</li>
+    </ul>
+    <div class="note red">
+      <p><b>Stated accurately:</b> the site currently has no video content, no standalone photo gallery page, and no full-screen lightbox viewer. Vehicle photographs are shown through the card carousels and the detail panel's thumbnail strip. All three are straightforward additions if wanted — they are listed in Section 11 rather than claimed here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 06 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 06</div>
+    <h2>How a customer makes contact</h2>
+    <p>There are three routes to the sales floor, and all three are recorded. The dealership sees every lead, not just the ones that happen to arrive by the channel someone is watching.</p>
+
+    <div class="grid g3">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="4.5" width="20" height="15" rx="2.5"/><path d="M2.6 6l8.3 6a2 2 0 0 0 2.2 0l8.3-6"/></svg></div>
+        <h4>Enquiry form</h4>
+        <p>Name, phone, email, vehicle and message. Saved to the dealership's inbox, then WhatsApp opens with the same details ready to send.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5A8.4 8.4 0 0 1 12.5 20a8.5 8.5 0 0 1-4-1L4 20l1.1-4.3A8.5 8.5 0 1 1 21 11.5z"/></svg></div>
+        <h4>Vehicle WhatsApp</h4>
+        <p>Started from any vehicle. The car, price, mileage and stock number are filled in automatically, and the lead is recorded first.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6.5A2 2 0 0 0 4.5 4v16a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/></svg></div>
+        <h4>Finance application</h4>
+        <p>The full application is emailed to the dealership; the contact details are separately recorded so the lead survives even if the email never sends.</p>
+      </div>
+    </div>
+
+    <h3>Validation that helps rather than scolds</h3>
+    <p>The form checks each field as the visitor types and clears the warning the moment it is corrected. Messages say what is wrong and how to fix it. The <em>Vehicle of Interest</em> field is a searchable list drawn from live stock, so it follows the floor automatically and a customer cannot enquire about a car that was sold last month.</p>
+
+    <h3>Everything else on the contact section</h3>
+    <ul>
+      <li><strong>Phone</strong> — tap to call on mobile, shown in three places across the page.</li>
+      <li><strong>WhatsApp</strong> — every button on the site draws from one number held in the portal, so changing it changes all of them at once.</li>
+      <li><strong>Email</strong> — opens a pre-addressed message.</li>
+      <li><strong>Address and an embedded Google map</strong>, with a <em>Get Directions</em> button that hands off to the visitor's maps app.</li>
+      <li><strong>Trading hours</strong> for all seven days, published from the portal, with closed days shown as closed.</li>
+      <li><strong>Social links</strong> — Facebook, Instagram and TikTok, each hiding itself automatically if no address is set.</li>
+    </ul>
+
+    <div class="note">
+      <p><b>The deliberate design decision worth knowing.</b> WhatsApp opens whether or not the enquiry saved successfully. If the database were ever briefly unreachable, the customer still gets through to the dealership — because reaching you is the point of the button. A failed save is logged quietly and never shown to the customer as an error.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 07 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 07</div>
+    <h2>User experience</h2>
+    <p>The guiding principle throughout: <strong>a buyer should never have to think about the website.</strong> Every decision below serves that.</p>
+
+    <h3>Responsive across every screen</h3>
+    <p>The layout is not one design squeezed into smaller boxes. It reflows deliberately at each size. On a desktop the inventory runs four cards wide with the full filter bar visible. On a tablet it becomes two. On a phone it is a single column, the menu collapses into a touch-friendly drawer, the header condenses, and the identity block scales down so it never crowds the screen. Touch targets are sized for thumbs, not cursors.</p>
+
+    <h3>Accessibility</h3>
+    <ul>
+      <li>A <strong>skip to main content</strong> link for keyboard and screen-reader users.</li>
+      <li>Descriptive labels on every icon-only control — sixteen across the page.</li>
+      <li>Full keyboard operation: the finance and enquiry dialogs trap focus while open and return it exactly where it was on close. <kbd>Escape</kbd> closes them.</li>
+      <li>Text contrast tested against the dark background rather than assumed. The brand yellow reads at <strong>14.6:1</strong>, comfortably beyond the strictest published standard.</li>
+      <li>Motion reduced automatically for visitors who have asked their device for it.</li>
+    </ul>
+
+    <h3>Typography and colour</h3>
+    <p>Two typefaces, used consistently: a geometric display face for headings and the interface, a highly legible companion for body text. Sizes scale fluidly with the viewport rather than snapping between fixed breakpoints.</p>
+    <p>The palette is drawn from the Supreme Auto logo itself — the yellow and red were sampled directly from the artwork rather than approximated by eye, so the site and the signage agree. They sit against a near-black ground with restrained neutrals, which is what makes the brand colours land when they appear.</p>
+  </div>
+</section>
+
+<!-- 08 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 08</div>
+    <h2>Performance, search and security</h2>
+    <div class="stat-row">
+      <div class="stat"><b>176&nbsp;KB</b><span>All code, uncompressed</span></div>
+      <div class="stat"><b>0</b><span>Frameworks loaded</span></div>
+      <div class="stat"><b>0</b><span>Console errors</span></div>
+      <div class="stat"><b>SSL</b><span>Enforced site-wide</span></div>
+    </div>
+
+    <h4>Speed</h4>
+    <ul>
+      <li>No heavy framework. The entire site is <strong>176&nbsp;KB of stylesheets and scripts</strong> before compression — a fraction of a typical template build.</li>
+      <li>The hero image is preloaded at high priority; everything else defers until needed.</li>
+      <li>Vehicle data is fetched once per visit and shared by every part of the page that needs it, rather than requested four separate times.</li>
+      <li>Successful data is cached in the visitor's browser, so a returning visitor sees stock immediately.</li>
+      <li>Assets are versioned, so a change reaches returning visitors instead of being masked by an old cached copy.</li>
+    </ul>
+
+    <h4>Search visibility</h4>
+    <ul>
+      <li><strong>Structured data</strong> describing the dealership — address, phone, trading hours, location — in the format Google reads for local business results.</li>
+      <li>Open Graph and social preview tags, so a shared link renders as a proper card with an image rather than a bare URL.</li>
+      <li>A canonical address, an XML sitemap and a search-engine directives file.</li>
+      <li>A web manifest, so the site can be saved to a phone's home screen like an app.</li>
+    </ul>
+
+    <h4>Security</h4>
+    <ul>
+      <li>Served entirely over <strong>HTTPS</strong>.</li>
+      <li>Customer enquiries are stored in a private database. <strong>Only authorised Supreme Auto staff can read them</strong> — verified by testing, not assumed.</li>
+      <li>Access requires both a valid account and explicit authorisation. Signing in is not sufficient on its own; an account must be on an approved list that cannot be edited from outside.</li>
+      <li>Internal fields such as a vehicle's VIN are withheld from public view.</li>
+      <li>Sensitive finance-application details — ID number, home address, income — are <strong>never stored by the website</strong>. They travel only in the email to the dealership.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 09 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 09</div>
+    <h2>What this returns to the business</h2>
+    <div class="grid g2">
+      <div class="card"><h4>Credibility before contact</h4><p>Most buyers judge a dealership before they call. Named finance partners, real reviews and a site that behaves properly do that work while the sales floor is busy.</p></div>
+      <div class="card"><h4>Leads that cannot be lost</h4><p>All three enquiry routes are recorded. A WhatsApp message missed on a phone still exists as a lead in the system.</p></div>
+      <div class="card"><h4>Independence</h4><p>Stock, prices, photographs, reviews, hours and homepage copy are all managed by staff. No developer, no delay, no invoice for a price change.</p></div>
+      <div class="card"><h4>Built for phones</h4><p>The majority of dealership traffic is mobile. The site is designed for that first rather than adapted to it afterwards.</p></div>
+      <div class="card"><h4>Found locally</h4><p>Structured local-business data gives Google what it needs to show Supreme Auto for nearby searches.</p></div>
+      <div class="card"><h4>Room to grow</h4><p>Adding stock, staff, services or entire new sections does not require rebuilding what already exists.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 10</div>
+    <h2>Microsoft 365 business email</h2>
+    <p>A dealership emailing customers from a free personal address undercuts everything the website is built to establish. This section covers moving Supreme Auto onto professional email on its own domain.</p>
+
+    <h3>Addresses on your own domain</h3>
+    <p>Every staff member gets an address at <strong>@supremeautonorth.co.za</strong>, with shared addresses for the functions that outlast any individual:</p>
+    <div class="grid g3">
+      <div class="card"><p><strong>info@</strong> · general enquiries</p></div>
+      <div class="card"><p><strong>sales@</strong> · the sales floor</p></div>
+      <div class="card"><p><strong>accounts@</strong> · invoicing</p></div>
+      <div class="card"><p><strong>admin@</strong> · administration</p></div>
+      <div class="card"><p><strong>quotes@</strong> · quotations</p></div>
+      <div class="card"><p><strong>director@</strong> · management</p></div>
+    </div>
+    <p>A shared address survives staff changes. When a salesperson leaves, the conversation history stays with the dealership instead of walking out on a personal account.</p>
+
+    <h3>What the licence includes</h3>
+    <p>Powered by <strong>Microsoft 365 Business Basic</strong>:</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Capability</th><th>What it means day to day</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Outlook email</strong></td><td>Web, desktop and mobile, synchronised. Read on a phone, it is read everywhere.</td></tr>
+          <tr><td><strong>Microsoft Teams</strong></td><td>Internal chat and calls, replacing personal WhatsApp for business conversation.</td></tr>
+          <tr><td><strong>Shared calendars</strong></td><td>Test drives, valuations and deliveries visible to whoever needs them.</td></tr>
+          <tr><td><strong>OneDrive storage</strong></td><td>1&nbsp;TB per user. Documents live in the business, not on one laptop.</td></tr>
+          <tr><td><strong>Shared contacts</strong></td><td>One customer list the whole floor works from.</td></tr>
+          <tr><td><strong>Spam and threat filtering</strong></td><td>Microsoft's filtering ahead of every inbox.</td></tr>
+          <tr><td><strong>Business-grade security</strong></td><td>Encryption in transit and at rest, with multi-factor sign-in available.</td></tr>
+          <tr><td><strong>Remote access</strong></td><td>Any device, anywhere, without exposing anything to the open internet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ownership, stated plainly</h3>
+    <div class="note">
+      <p><b>Supreme Auto owns the tenant.</b> The Microsoft 365 environment, the domain, the mailboxes and every message in them belong to the dealership. We administer it on your behalf.</p>
+      <p>If you ever choose to move to another provider or bring it in-house, you take the whole environment with you. There is nothing to unpick and no data held hostage.</p>
+    </div>
+
+    <h3>What we do</h3>
+    <div class="grid g2">
+      <div class="card"><h4>Setup</h4><p>Tenant creation, DNS records, domain verification, mailbox and shared-address creation, and configuring each device — desktop, laptop and phone.</p></div>
+      <div class="card"><h4>Migration</h4><p>Where staff have existing mail, history is moved across so nothing is lost in the change.</p></div>
+      <div class="card"><h4>Ongoing management</h4><p>Password resets, security updates, licence management, and onboarding or removing staff as the dealership changes.</p></div>
+      <div class="card"><h4>Support</h4><p>A direct line when something is not working, rather than a general Microsoft support queue.</p></div>
+    </div>
+
+    <h3>Pricing structure</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>One-time, at setup</th><th>Monthly, ongoing</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Microsoft 365 tenant setup<br>DNS configuration and domain verification<br>Mailbox and shared-address creation<br>Device configuration per user<br>Mail migration where applicable</td>
+            <td>Microsoft licence, per user<br>Managed email administration<br>Security monitoring<br>Ongoing technical support</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note red">
+      <p><b>Figures to be inserted.</b> The structure above is complete; the amounts are intentionally left blank. Microsoft licence pricing depends on the plan and user count at the time of order, and the service fees are commercial terms to be set — not something to be estimated in a client document. Insert the final figures before this is issued.</p>
+    </div>
+
+    <h3>Why Microsoft rather than the alternatives</h3>
+    <p>Two reasons that matter for a growing dealership. First, it is what banks, insurers and finance houses already use, so documents and calendar invitations simply work rather than needing to be worked around. Second, it grows one licence at a time — a new salesperson is a mailbox added this afternoon, not a migration project.</p>
+  </div>
+</section>
+
+<!-- 11 -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">Section 11</div>
+    <h2>Where this can go next</h2>
+    <p>The platform was built so that additions extend it rather than replace it. Everything below can be added without rebuilding what exists.</p>
+    <div class="grid g3">
+      <div class="card"><h4>Customer portal</h4><p>Buyers track their finance application and documents themselves.</p></div>
+      <div class="card"><h4>Booking system</h4><p>Test drives and valuations booked online against staff calendars.</p></div>
+      <div class="card"><h4>Online payments</h4><p>Take deposits to secure a vehicle before collection.</p></div>
+      <div class="card"><h4>Photo gallery</h4><p>A dedicated gallery for the showroom, the team and delivered cars.</p></div>
+      <div class="card"><h4>Video</h4><p>Walkaround videos on vehicle listings — the single highest-impact addition for a dealership.</p></div>
+      <div class="card"><h4>Lightbox viewer</h4><p>Full-screen photograph viewing with swipe and zoom.</p></div>
+      <div class="card"><h4>Analytics dashboard</h4><p>Real visitor numbers and lead sources in the portal.</p></div>
+      <div class="card"><h4>CRM integration</h4><p>Push enquiries straight into a sales pipeline.</p></div>
+      <div class="card"><h4>Email marketing</h4><p>New-stock alerts to past enquirers.</p></div>
+      <div class="card"><h4>Document management</h4><p>Store licences and registration papers against each vehicle.</p></div>
+      <div class="card"><h4>Staff portal</h4><p>Individual accounts with roles and permissions.</p></div>
+      <div class="card"><h4>Automated quotations</h4><p>Generate and send a formal quote from a vehicle record.</p></div>
+      <div class="card"><h4>Online store</h4><p>Accessories, service plans and extras sold directly.</p></div>
+      <div class="card"><h4>AI assistant</h4><p>Answer common questions and qualify leads outside trading hours.</p></div>
+      <div class="card"><h4>Marketplace sync</h4><p>Publish stock to AutoTrader and Cars.co.za from one place.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- conclusion -->
+<section>
+  <div class="wrap">
+    <div class="sec-num">In closing</div>
+    <h2>A digital headquarters, not a brochure</h2>
+    <p>The website is where most people will meet Supreme Auto for the first time. It has been built to make that meeting count: quick to load, straightforward to use on the device the customer actually has in their hand, honest about what it claims, and secure with the customer information it holds.</p>
+    <p>Just as importantly, it is <strong>yours to run</strong>. Stock, pricing, photographs, reviews, contact details and the homepage message are all under the dealership's control. The website reflects the floor as it is today, not as it was when a developer last touched it.</p>
+    <p>What has been delivered is a foundation. The finance journey, the enquiry capture and the stock management are the parts a dealership needs first. Bookings, payments, video, marketplace syndication and the rest are extensions of the same platform, added when the business is ready for them — not a rebuild.</p>
+    <div class="note">
+      <p><b>The measure of it.</b> A buyer should be able to find the right car, understand what it costs, see that other people have been treated well, and reach the sales floor — in under two minutes, on a phone, without once wondering how the website works.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <img src="logo.png" alt="Supreme Auto">
+    <span>Website Solution Overview · Prepared for Supreme Auto, Pretoria North</span>
+  </div>
+</footer>
+
+</body>
+</html>
