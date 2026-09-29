@@ -1901,7 +1901,7 @@ const UI = {
      Renders a drop zone plus reorderable thumbnails. Calls onChange
      with the new array of data URLs. Works on desktop and mobile. */
   uploader(host,opts){
-    const cfg = Object.assign({ max:5, images:[], label:'Drop images here or tap to browse', hint:'' }, opts);
+    const cfg = Object.assign({ max:MAX_VEHICLE_IMAGES, images:[], label:'Drop images here or tap to browse', hint:'' }, opts);
     let imgs = cfg.images.slice();
     const inputId = U.id('file');
 
@@ -2167,6 +2167,12 @@ const H = {
     });
   }
 };
+
+/* How many photographs a vehicle may carry. The uploader, its helper text
+   and the counter all read this, so changing it here changes it everywhere.
+   The database column is jsonb with no length constraint and the website
+   maps over the whole array, so neither imposes a ceiling of its own. */
+const MAX_VEHICLE_IMAGES = 10;
 
 const BRANDS = ['Audi','BMW','Chery','Chevrolet','Datsun','Ford','GWM','Haval','Honda','Hyundai','Isuzu','Jeep','Kia','Land Rover','Mahindra','Mazda','Mercedes-Benz','Mini','Mitsubishi','Nissan','Opel','Peugeot','Renault','Subaru','Suzuki','Toyota','Volkswagen','Volvo','Other'];
 const BODIES = ['Hatchback','Sedan','SUV','Double Cab','Single Cab','Coupe','Station Wagon','MPV','Convertible','Panel Van'];
@@ -3634,11 +3640,11 @@ const Modules = {
       if(tab==='images'){
         panel.innerHTML = `
           <div class="grid" style="gap:14px">
-            <div class="note">${ICON.info}<div>Add up to 5 photos. The first photo is the main image on your website, so make it the best exterior shot. Drag any photo to change the order.</div></div>
+            <div class="note">${ICON.info}<div>Add up to ${MAX_VEHICLE_IMAGES} photos. The first photo is the main image on your website, so make it the best exterior shot. Drag any photo to change the order.</div></div>
             <div id="vUp"></div>
           </div>`;
         UI.uploader(U.el('#vUp',panel),{
-          max:5, images:draft.images, bucket:'vehicle-images', label:'Drop vehicle photos here or tap to browse',
+          max:MAX_VEHICLE_IMAGES, images:draft.images, bucket:'vehicle-images', label:'Drop vehicle photos here or tap to browse',
           hint:'Landscape photos look best.',
           onChange:imgs=>{ draft.images = imgs; const c=U.el('[data-imgc]',m.el); if(c) c.textContent = imgs.length; }
         });
