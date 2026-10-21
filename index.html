@@ -435,6 +435,10 @@ img{max-width:100%;display:block}
 }
 .veh:hover{transform:translateY(-5px);box-shadow:var(--sh-4);border-color:rgba(10,132,255,.32)}
 .veh.sold{opacity:.72}
+/* A draft is marked with a dashed edge rather than dimmed: it is unfinished
+   work that needs attention, not stock that has gone. */
+.veh.is-draft{border-style:dashed;border-color:var(--warning)}
+.veh.is-draft .veh-img{opacity:.82}
 .veh-img{position:relative;aspect-ratio:16/10;background:linear-gradient(145deg,#1A1F29,#0E1117);overflow:hidden}
 .veh-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease)}
 .veh:hover .veh-img img{transform:scale(1.07)}
@@ -1078,7 +1082,7 @@ const U = {
         img.onerror = ()=>reject(new Error('Could not decode image'));
         img.onload = ()=>{
           try{
-            const scale = Math.min(1, maxW/img.width);
+            const scale = Math.min(1, maxW/Math.max(img.width,img.height));
             const c = document.createElement('canvas');
             c.width = Math.round(img.width*scale);
             c.height = Math.round(img.height*scale);
@@ -1144,20 +1148,34 @@ const MS  = v  => v ? new Date(v).getTime() : null;
 const MAP = {
   vehicles:{
     table:'vehicles', bucket:'vehicle-images',
-    to:(v,i)=>({ id:v.id, name:v.name||'', brand:v.brand||'', model:v.model||'', year:Number(v.year)||null,
+    to:(v,i)=>({ id:v.id, name:v.name||'', headline:v.headline||'', brand:v.brand||'', model:v.model||'',
+      variant:v.variant||'', year:Number(v.year)||null,
       mileage:Number(v.mileage)||0, transmission:v.transmission||'', fuel:v.fuel||'', body:v.body||'',
-      colour:v.colour||'', engine:v.engine||'', power:v.power||'', condition:v.condition||'',
-      price:Number(v.price)||0, installment:Number(v.installment)||0, description:v.description||'',
-      features:v.features||[], images:v.images||[], vin:v.vin||'', stock:v.stock||'',
+      colour:v.colour||'', engine:v.engine||'', power:v.power||'', drivetrain:v.drivetrain||'',
+      doors:Number(v.doors)||null, seats:Number(v.seats)||null, condition:v.condition||'',
+      price:Number(v.price)||0, previous_price:Number(v.previousPrice)||0,
+      offer_price:Number(v.offerPrice)||0, installment:Number(v.installment)||0,
+      description:v.description||'', service_history:v.serviceHistory||'', warranty:v.warranty||'',
+      finance_note:v.financeNote||'', notes:v.notes||'',
+      features:v.features||[], images:v.images||[], vin:v.vin||'', registration:v.registration||'',
+      stock:v.stock||'',
       status:v.status||'available', featured:!!v.featured, sold:!!v.sold, reserved:!!v.reserved,
-      archived:!!v.archived, views:Number(v.views)||0, sort_order:i||0,
+      draft:!!v.draft, archived:!!v.archived, views:Number(v.views)||0, sort_order:i||0,
+      sold_at:v.soldAt?ISO(v.soldAt):null,
       created_at:ISO(v.createdAt), updated_at:ISO(v.updatedAt) }),
-    from:r=>({ id:r.id, name:r.name, brand:r.brand, model:r.model, year:r.year, mileage:r.mileage,
+    from:r=>({ id:r.id, name:r.name, headline:r.headline||'', brand:r.brand, model:r.model,
+      variant:r.variant||'', year:r.year, mileage:r.mileage,
       transmission:r.transmission, fuel:r.fuel, body:r.body, colour:r.colour, engine:r.engine,
-      power:r.power, condition:r.condition, price:Number(r.price), installment:Number(r.installment),
-      description:r.description, features:r.features||[], images:r.images||[], vin:r.vin, stock:r.stock,
-      status:r.status, featured:r.featured, sold:r.sold, reserved:r.reserved, archived:r.archived,
-      views:r.views, createdAt:MS(r.created_at), updatedAt:MS(r.updated_at) })
+      power:r.power, drivetrain:r.drivetrain||'', doors:r.doors||null, seats:r.seats||null,
+      condition:r.condition, price:Number(r.price), previousPrice:Number(r.previous_price)||0,
+      offerPrice:Number(r.offer_price)||0, installment:Number(r.installment),
+      description:r.description, serviceHistory:r.service_history||'', warranty:r.warranty||'',
+      financeNote:r.finance_note||'', notes:r.notes||'',
+      features:r.features||[], images:r.images||[], vin:r.vin, registration:r.registration||'',
+      stock:r.stock,
+      status:r.status, featured:r.featured, sold:r.sold, reserved:r.reserved,
+      draft:!!r.draft, archived:r.archived,
+      views:r.views, soldAt:MS(r.sold_at), createdAt:MS(r.created_at), updatedAt:MS(r.updated_at) })
   },
   testimonials:{
     table:'testimonials', bucket:'branding',
@@ -1190,6 +1208,11 @@ const SETTINGS_KEYS = ['homepage','contact','meta'];
    Both values are safe to keep in this file. The publishable key is designed
    to sit in public website code and is useless without an account that is on
    the portal_owners allowlist. A secret key never belongs here. */
+/* The published address of the website this portal drives. Used for the
+   per vehicle links and the sitemap, so there is one line to change if the
+   domain ever moves. */
+const SITE_URL = 'https://supremeautonorth.co.za/';
+
 const DEFAULT_PROJECT = {
   url:'https://wltrdchewowvolushyfl.supabase.co',
   key:'sb_publishable_1frBQ7n0x2addaHtmGJ6ww_BbyaDiIU'
@@ -1699,17 +1722,20 @@ const Store = {
   stats(){
     const v = this.list('vehicles').filter(x=>!x.archived);
     const all = this.list('vehicles');
+    const live = v.filter(x=>!x.draft);                 /* what the website can see */
     return {
       total:v.length,
-      available:v.filter(x=>!x.sold && !x.reserved).length,
+      published:live.filter(x=>!x.sold).length,
+      draft:v.filter(x=>x.draft).length,
+      available:live.filter(x=>!x.sold && !x.reserved).length,
       sold:all.filter(x=>x.sold).length,
-      reserved:v.filter(x=>x.reserved && !x.sold).length,
-      featured:v.filter(x=>x.featured && !x.sold).length,
+      reserved:live.filter(x=>x.reserved && !x.sold).length,
+      featured:live.filter(x=>x.featured && !x.sold).length,
       archived:all.filter(x=>x.archived).length,
       testimonials:this.list('testimonials').length,
       unread:this.list('enquiries').filter(e=>e.status==='unread').length,
       enquiries:this.list('enquiries').length,
-      stockValue:v.filter(x=>!x.sold).reduce((s,x)=>s+(Number(x.price)||0),0),
+      stockValue:v.filter(x=>!x.sold).reduce((s,x)=>s+(Number(Modules.vehiclePrice(x).now)||0),0),
       views:v.reduce((s,x)=>s+(Number(x.views)||0),0)
     };
   }
@@ -1942,7 +1968,7 @@ const UI = {
       const bar = U.el('i',prog);
       for(let i=0;i<use.length;i++){
         try{
-          let url = await U.readImage(use[i]);
+          let url = await U.readImage(use[i],IMAGE_MAX_EDGE,IMAGE_QUALITY);
           url = await Assets.put(url,cfg.bucket);          /* to Storage when connected */
           if(replaceIdx!=null){
             const old = imgs[replaceIdx];
@@ -2066,7 +2092,7 @@ const UI = {
 
   skeleton(kind,n=6){
     if(kind==='cards') return `<div class="veh-grid">${Array(n).fill('<div class="sk sk-card"></div>').join('')}</div>`;
-    if(kind==='stats') return `<div class="stats">${Array(4).fill('<div class="sk" style="height:112px;border-radius:var(--r-lg)"></div>').join('')}</div>`;
+    if(kind==='stats') return `<div class="stats">${Array(5).fill('<div class="sk" style="height:112px;border-radius:var(--r-lg)"></div>').join('')}</div>`;
     return `<div class="grid" style="gap:10px">${Array(n).fill('<div class="sk sk-line"></div>').join('')}</div>`;
   }
 };
@@ -2172,13 +2198,40 @@ const H = {
    and the counter all read this, so changing it here changes it everywhere.
    The database column is jsonb with no length constraint and the website
    maps over the whole array, so neither imposes a ceiling of its own. */
-const MAX_VEHICLE_IMAGES = 10;
+const MAX_VEHICLE_IMAGES = 20;
+
+/* Photographs are downscaled in the browser before they leave the
+   computer. A phone photo is 3 to 5 MB and around 4000px wide; nothing on
+   the website is displayed above 1600px, so the rest is bandwidth the
+   dealership pays for twice, once to store and once every time a visitor
+   loads the page. 1600px at quality 0.82 lands around 120KB, which keeps
+   a full 100 car catalogue at 20 photographs each inside Supabase's
+   storage allowance with room to spare. */
+const IMAGE_MAX_EDGE = 1600;
+const IMAGE_QUALITY  = 0.82;
 
 const BRANDS = ['Audi','BMW','Chery','Chevrolet','Datsun','Ford','GWM','Haval','Honda','Hyundai','Isuzu','Jeep','Kia','Land Rover','Mahindra','Mazda','Mercedes-Benz','Mini','Mitsubishi','Nissan','Opel','Peugeot','Renault','Subaru','Suzuki','Toyota','Volkswagen','Volvo','Other'];
 const BODIES = ['Hatchback','Sedan','SUV','Double Cab','Single Cab','Coupe','Station Wagon','MPV','Convertible','Panel Van'];
 const FUELS = ['Petrol','Diesel','Hybrid','Electric'];
 const TRANS = ['Manual','Automatic','DSG','CVT','Tiptronic'];
 const CONDS = ['Excellent','Very Good','Good','Fair','Needs work'];
+const DRIVES = ['Front wheel drive','Rear wheel drive','All wheel drive','4x4','4x2'];
+const REGSTATES = ['Registered and licensed','Licence expired','Unregistered','Code 2 used','Code 3 rebuilt','Papers in order'];
+
+/* The features a Pretoria dealership actually ticks, grouped the way a
+   buyer thinks about them. Staff pick from these instead of typing the
+   same twenty phrases into a free text box and spelling them four
+   different ways, which is why the features field sat unused. Anything
+   unusual still goes in by hand underneath. */
+const FEATURE_GROUPS = [
+  { name:'Comfort', items:['Air conditioning','Climate control','Leather seats','Electric seats','Heated seats','Electric windows','Electric mirrors','Multifunction steering wheel','Cruise control','Keyless entry','Push button start'] },
+  { name:'Safety',  items:['ABS brakes','Driver airbag','Passenger airbag','Side airbags','Electronic stability control','Traction control','Hill start assist','ISOFIX child seat anchors','Alarm and immobiliser','Central locking'] },
+  { name:'Technology', items:['Bluetooth','Apple CarPlay','Android Auto','Touchscreen infotainment','Satellite navigation','USB ports','Reverse camera','360 degree camera','Front parking sensors','Rear parking sensors','Digital instrument cluster'] },
+  { name:'Exterior', items:['Alloy wheels','Tow bar','Roof rails','Sunroof','Panoramic roof','LED headlights','Fog lights','Spray on bedliner','Canopy','Nudge bar','Side steps'] },
+  { name:'Paperwork', items:['Full service history','Service book available','Accident free','One owner from new','Balance of factory warranty','Balance of service plan','Balance of maintenance plan','Spare key available','Roadworthy certificate'] }
+];
+/* Flat lookup, so the free text box can tell a ticked feature from a typed one. */
+const FEATURE_SET = FEATURE_GROUPS.reduce((a,g)=>a.concat(g.items),[]);
 
 /* ==================================================================
    MODULE: Dashboard
@@ -2198,7 +2251,8 @@ Portal.register({
 
     <div class="stats" style="margin-bottom:16px">
       ${H.stat({label:'Website status',value:live?'Live':'Offline',icon:'globe',tone:live?'ok':'dan',sub:live?'<span class="trend up">All systems normal</span>':'<span class="trend down">Visitors see a notice</span>'})}
-      ${H.stat({label:'Vehicles listed',count:st.available,icon:'car',sub:`<span>${st.reserved} reserved · ${st.featured} featured</span>`})}
+      ${H.stat({label:'On your website',count:st.published,icon:'car',sub:`<span>${st.reserved} reserved · ${st.featured} featured</span>`})}
+      ${H.stat({label:'Draft listings',count:st.draft,icon:'edit',tone:st.draft?'warn':'',sub:st.draft?'<span class="trend">Not visible to buyers yet</span>':'<span>Nothing waiting</span>'})}
       ${H.stat({label:'Vehicles sold',count:st.sold,icon:'checkCircle',tone:'ok',sub:'<span class="trend up">All time total</span>'})}
       ${H.stat({label:'Unread enquiries',count:st.unread,icon:'inbox',tone:st.unread?'dan':'ok',sub:`<span>${st.enquiries} enquiries in total</span>`})}
     </div>
@@ -2283,18 +2337,22 @@ Portal.register({
    MODULE: Vehicles
    ================================================================== */
 Portal.register({
-  id:'vehicles', title:'Vehicle Management', sub:'Your complete stock list', icon:'car', group:'Inventory', skeleton:'cards',
-  badge(st){ return st.available ? {text:String(st.available),mut:true} : null; },
+  id:'vehicles', title:'Vehicle Inventory', sub:'Your complete stock list', icon:'car', group:'Inventory', skeleton:'cards',
+  /* The badge counts drafts, not stock: a draft is the one state that needs
+     someone to come back and do something about it. */
+  badge(st){ return st.draft ? {text:String(st.draft),mut:true} : null; },
   state:{ q:'', tab:'all', brand:'', sort:'newest' },
   render(params){
     if(params.q!=null && params.q!=='') this.state.q = params.q;
     const s = this.state;
     const all = Store.list('vehicles');
+    const live = all.filter(v=>!v.archived&&!v.draft);
     const counts = {
       all:all.filter(v=>!v.archived).length,
-      available:all.filter(v=>!v.archived&&!v.sold&&!v.reserved).length,
-      featured:all.filter(v=>!v.archived&&v.featured).length,
-      reserved:all.filter(v=>!v.archived&&v.reserved&&!v.sold).length,
+      published:live.filter(v=>!v.sold).length,
+      draft:all.filter(v=>!v.archived&&v.draft).length,
+      featured:live.filter(v=>v.featured&&!v.sold).length,
+      reserved:live.filter(v=>v.reserved&&!v.sold).length,
       sold:all.filter(v=>!v.archived&&v.sold).length,
       archived:all.filter(v=>v.archived).length
     };
@@ -2302,7 +2360,8 @@ Portal.register({
     const list = Modules.filterVehicles(all,s);
 
     return `
-    ${H.head('Vehicle Management','Add, edit and manage every vehicle that appears on your website.',`
+    ${H.head('Vehicle Inventory','Add, edit and manage every vehicle that appears on your website.',`
+      <button class="btn" data-act="sitemap" title="Builds a sitemap.xml listing every published vehicle, for search engines">${ICON.globe} Sitemap</button>
       <button class="btn" data-act="export">${ICON.download} Export CSV</button>
       <button class="btn btn-pri" data-act="add">${ICON.plus} Add vehicle</button>`)}
 
@@ -2321,7 +2380,7 @@ Portal.register({
     </div>
 
     <div class="segbar" style="margin-bottom:18px">
-      ${[['all','All stock'],['available','Available'],['featured','Featured'],['reserved','Reserved'],['sold','Sold'],['archived','Archived']]
+      ${[['all','All stock'],['published','Published'],['draft','Drafts'],['featured','Featured'],['reserved','Reserved'],['sold','Sold'],['archived','Archived']]
         .map(t=>`<button data-tab="${t[0]}" class="${s.tab===t[0]?'on':''}">${t[1]}<span class="n">${counts[t[0]]}</span></button>`).join('')}
     </div>
 
@@ -2330,7 +2389,7 @@ Portal.register({
           s.q||s.brand ? 'Try a different search term or clear your filters.' : 'Add your first vehicle and it will appear on your website straight away.',
           `<button class="btn btn-pri" data-act="add" style="margin-top:4px">${ICON.plus} Add vehicle</button>`)}
 
-    ${list.length?`<div style="margin-top:20px;text-align:center;color:var(--text-3);font-size:12.5px">Showing ${list.length} of ${counts.all} vehicles · Total value ${U.money(list.filter(v=>!v.sold).reduce((a,v)=>a+(Number(v.price)||0),0))}</div>`:''}
+    ${list.length?`<div style="margin-top:20px;text-align:center;color:var(--text-3);font-size:12.5px">Showing ${list.length} of ${counts.all} vehicles · ${counts.published} on the website · Total value of unsold stock ${U.money(list.filter(v=>!v.sold).reduce((a,v)=>a+(Number(Modules.vehiclePrice(v).now)||0),0))}</div>`:''}
     `;
   },
   mount(root){
@@ -2342,6 +2401,7 @@ Portal.register({
     U.on(root,'click','[data-tab]',(e,b)=>{ s.tab=b.dataset.tab; Router.refresh(); });
     U.on(root,'click','[data-act="add"]',()=>Modules.vehicleForm(null));
     U.on(root,'click','[data-act="export"]',()=>Modules.exportVehicles());
+    U.on(root,'click','[data-act="sitemap"]',()=>Modules.exportSitemap());
     U.on(root,'click','[data-vact]',U.guard((e,b)=>Modules.vehicleAction(b.dataset.vact,b.dataset.id)));
     U.on(root,'click','[data-vopen]',(e,b)=>{
       if(e.target.closest('[data-vact]')) return;
@@ -3057,6 +3117,31 @@ const cars = await res.json();
   mount(root){
     const result = U.el('#sbResult',root);
 
+    /* Is the database schema current? The portal writes columns that only
+       exist after the inventory upgrade has been run. Asking for one of
+       them is the cheapest way to find out, and saying so here is far
+       kinder than letting a save fail with a PostgREST error the user has
+       no way to interpret. */
+    if(Cloud.authed){
+      Cloud.json('/rest/v1/vehicles?select=draft,variant,previous_price&limit=1')
+        .then(()=>{})
+        .catch(err=>{
+          if(!/column|does not exist|42703/i.test(err.message||'')) return;
+          const host = U.el('.page-head',root);
+          if(!host || U.el('[data-schema-warn]',root)) return;
+          const box = document.createElement('div');
+          box.className = 'note dan';
+          box.setAttribute('data-schema-warn','');
+          box.style.margin = '0 0 18px';
+          box.innerHTML = ICON.warn +
+            '<div><b>Your database is one step behind this portal.</b> ' +
+            'Vehicle details added in the inventory upgrade cannot be saved until ' +
+            'RUN-THIS-INVENTORY-UPGRADE.sql has been run in the Supabase SQL editor. ' +
+            'Until then, editing a vehicle will fail to sync.</div>';
+          host.insertAdjacentElement('afterend', box);
+        });
+    }
+
     /* confirm the signed in account is actually allowed to see the data */
     if(Cloud.authed){
       Cloud.isOwner().then(owner=>{
@@ -3210,6 +3295,18 @@ create table if not exists public.vehicles (
   price         numeric default 0,
   installment   numeric default 0,
   description   text default '',
+  variant       text default '',
+  drivetrain    text default '',
+  doors         int,
+  seats         int,
+  registration  text default '',
+  headline        text default '',
+  service_history text default '',
+  warranty        text default '',
+  finance_note    text default '',
+  notes           text default '',
+  previous_price  numeric default 0,
+  offer_price     numeric default 0,
   features      jsonb not null default '[]'::jsonb,
   images        jsonb not null default '[]'::jsonb,
   vin           text default '',
@@ -3218,9 +3315,11 @@ create table if not exists public.vehicles (
   featured      boolean not null default false,
   sold          boolean not null default false,
   reserved      boolean not null default false,
+  draft         boolean not null default false,
   archived      boolean not null default false,
   views         int not null default 0,
   sort_order    int not null default 0,
+  sold_at       timestamptz,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -3374,14 +3473,20 @@ create policy "supreme owner update" on storage.objects for update to authentica
 create policy "supreme owner delete" on storage.objects for delete to authenticated
   using (bucket_id in ('vehicle-images','branding') and public.is_owner());
 
-create or replace view public.website_vehicles
-  with (security_invoker = true) as
-  select id, name, brand, model, year, mileage, transmission, fuel, body,
-         colour, engine, power, condition, price, installment, description,
-         features, images, stock, status, featured, sold, reserved, views,
-         sort_order, created_at
+/* Not security_invoker: anon holds column level grants on vehicles rather
+   than a table grant, and a security_invoker view needs the table grant to
+   be readable at all. Running as owner is what makes the column list below
+   the boundary. */
+create or replace view public.website_vehicles as
+  select id, name, headline, brand, model, variant, year, mileage,
+         transmission, fuel, body, colour, engine, power, drivetrain,
+         doors, seats, condition,
+         price, previous_price, offer_price, installment,
+         description, service_history, warranty, finance_note, notes,
+         features, images, stock, status, featured, reserved, views,
+         sort_order, created_at, updated_at
   from public.vehicles
-  where archived = false
+  where archived = false and draft = false and sold = false
   order by featured desc, sort_order asc, created_at desc;
 
 grant usage on schema public to anon, authenticated;
@@ -3390,10 +3495,12 @@ grant select on public.site_settings, public.testimonials,
                 public.website_vehicles to anon;
 
 revoke select on public.vehicles from anon;
-grant select (id, name, brand, model, year, mileage, transmission, fuel, body, colour,
-           engine, power, condition, price, installment, description, features,
-           images, stock, status, featured, sold, reserved, archived, views,
-           sort_order, created_at)
+grant select (id, name, headline, brand, model, variant, year, mileage,
+           transmission, fuel, body, colour, engine, power, drivetrain,
+           doors, seats, condition, price, previous_price, offer_price,
+           installment, description, service_history, warranty, finance_note,
+           notes, features, images, stock, status, featured, sold, reserved,
+           archived, views, sort_order, created_at, updated_at)
   on public.vehicles to anon;
 grant insert on public.enquiries to anon;
 
@@ -3414,15 +3521,17 @@ const Modules = {
     if(s.tab==='archived') list = list.filter(v=>v.archived);
     else{
       list = list.filter(v=>!v.archived);
-      if(s.tab==='available') list = list.filter(v=>!v.sold && !v.reserved);
-      if(s.tab==='featured') list = list.filter(v=>v.featured);
-      if(s.tab==='reserved') list = list.filter(v=>v.reserved && !v.sold);
-      if(s.tab==='sold') list = list.filter(v=>v.sold);
+      if(s.tab==='draft')     list = list.filter(v=>v.draft);
+      if(s.tab==='published') list = list.filter(v=>!v.draft && !v.sold);
+      if(s.tab==='featured')  list = list.filter(v=>!v.draft && v.featured && !v.sold);
+      if(s.tab==='reserved')  list = list.filter(v=>!v.draft && v.reserved && !v.sold);
+      if(s.tab==='sold')      list = list.filter(v=>v.sold);
     }
     if(s.brand) list = list.filter(v=>v.brand===s.brand);
     if(s.q){
       const q = s.q.toLowerCase();
-      list = list.filter(v=>[v.name,v.brand,v.model,v.stock,v.vin,v.colour,String(v.year)].join(' ').toLowerCase().indexOf(q)>=0);
+      list = list.filter(v=>[v.name,v.headline,v.brand,v.model,v.variant,v.stock,v.vin,v.registration,v.colour,String(v.year)]
+        .filter(Boolean).join(' ').toLowerCase().indexOf(q)>=0);
     }
     const by = {
       'newest':(a,b)=>b.createdAt-a.createdAt,
@@ -3439,23 +3548,25 @@ const Modules = {
 
   vehicleCard(v){
     const img = v.images && v.images[0];
-    return `<article class="veh ${v.sold?'sold':''}" data-vopen="${v.id}" style="cursor:pointer">
+    const st = Modules.vehicleState(v);
+    const p = Modules.vehiclePrice(v);
+    return `<article class="veh ${v.sold?'sold':''} ${v.draft?'is-draft':''}" data-vopen="${v.id}" style="cursor:pointer">
       <div class="veh-img">
         ${img?`<img src="${img}" alt="${U.esc(v.name)}" loading="lazy">`
              :`<div class="none">${ICON.image}<span>No photos yet</span></div>`}
         <div class="veh-tags">
           ${v.demo?`<span class="chip dan" title="Placeholder content, not real"><i></i>Sample</span>`:''}
-          ${v.featured?`<span class="chip acc"><i></i>Featured</span>`:''}
-          ${v.reserved&&!v.sold?`<span class="chip warn"><i></i>Reserved</span>`:''}
-          ${v.archived?`<span class="chip"><i></i>Archived</span>`:''}
+          <span class="chip ${st.tone}" title="${U.esc(st.why)}"><i></i>${U.esc(st.label)}</span>
+          ${v.featured&&!v.draft&&!v.sold?`<span class="chip acc"><i></i>Featured</span>`:''}
         </div>
         ${v.images&&v.images.length?`<span class="veh-count">${ICON.image} ${v.images.length}</span>`:''}
         ${v.sold?`<div class="sold-stamp"><b>SOLD</b></div>`:''}
       </div>
       <div class="veh-b">
         <div class="veh-name">${U.esc(v.name)}</div>
-        <div class="veh-meta">${v.year} · ${U.esc(v.colour||v.body||'')} · Stock ${U.esc(v.stock||'not set')}</div>
-        <div class="veh-price">${U.money(v.price)}
+        <div class="veh-meta">${v.year||''} · ${U.esc(v.colour||v.body||'')} · Stock ${U.esc(v.stock||'not set')}</div>
+        <div class="veh-price">
+          ${p.was?`<small style="text-decoration:line-through;opacity:.55;margin-right:6px;display:inline">${U.money(p.was)}</small>`:''}${U.money(p.now)}
           ${v.installment?`<small>From ${U.money(v.installment)} per month</small>`:''}
         </div>
         <div class="veh-specs">
@@ -3469,7 +3580,9 @@ const Modules = {
         <button class="btn btn-sm" data-vact="edit" data-id="${v.id}">${ICON.edit} Edit</button>
         ${v.archived
           ? `<button class="btn btn-sm btn-ok" data-vact="unarchive" data-id="${v.id}">${ICON.refresh} Restore</button>`
-          : `<button class="btn btn-sm ${v.sold?'btn-warn':'btn-ok'}" data-vact="sold" data-id="${v.id}">${v.sold?ICON.refresh+' Unsold':ICON.check+' Sold'}</button>`}
+          : v.draft
+          ? `<button class="btn btn-sm btn-pri" data-vact="publish" data-id="${v.id}">${ICON.globe} Publish</button>`
+          : `<button class="btn btn-sm ${v.sold?'btn-warn':'btn-ok'}" data-vact="sold" data-id="${v.id}">${v.sold?ICON.refresh+' Relist':ICON.check+' Sold'}</button>`}
         <button class="btn btn-sm btn-icon" data-vact="menu" data-id="${v.id}" title="More actions">${ICON.grip}</button>
       </div>
     </article>`;
@@ -3489,16 +3602,48 @@ const Modules = {
   async vehicleAction(act,id){
     const v = Store.find('vehicles',id);
     if(!v) return;
-    if(act==='edit') return Modules.vehicleForm(id);
+    if(act==='edit')    return Modules.vehicleForm(id);
+    if(act==='menu')    return Modules.vehicleMenu(v);
+    if(act==='preview') return Modules.vehiclePreview(v);
+    /* The real page, in a new tab, so staff can check what a buyer sees. */
+    if(act==='open')    return window.open(SITE_URL+'vehicle.html?id='+encodeURIComponent(v.id),'_blank','noopener');
 
-    if(act==='menu') return Modules.vehicleMenu(v);
+    /* Publishing from the card runs the same two checks the form's publish
+       button runs, so a listing can never reach the website by a route that
+       skips them. If it fails, the form opens on the tab that needs work. */
+    if(act==='publish'){
+      const missing = [];
+      if(!Modules.vehiclePrice(v).now) missing.push('an asking price');
+      if(!v.images.length) missing.push('at least one photograph');
+      if(missing.length){
+        UI.toast('err','Not ready to publish','This listing still needs '+missing.join(' and ')+'.');
+        return Modules.vehicleForm(id);
+      }
+      Store.update('vehicles',id,{draft:false,status:Modules.vehicleState(Object.assign({},v,{draft:false})).key});
+      Store.log('Vehicle published',v.name+' is now on the website','globe','ok');
+      Store.persist(true); Router.refresh();
+      UI.toast('ok','Published to your website',v.name);
+    }
+    if(act==='unpublish'){
+      Store.update('vehicles',id,{draft:true,featured:false,status:'draft'});
+      Store.log('Vehicle unpublished',v.name+' was taken off the website','edit','warn');
+      Store.persist(true); Router.refresh();
+      UI.toast('ok','Taken off the website',v.name+' is a draft again');
+    }
 
     if(act==='sold'){
       const now = !v.sold;
-      Store.update('vehicles',id,{sold:now,status:now?'sold':'available',reserved:now?false:v.reserved,featured:now?false:v.featured});
-      Store.log(now?'Vehicle marked as sold':'Vehicle back in stock',v.name,'checkCircle',now?'ok':'acc');
+      const next = Object.assign({},v,{sold:now,reserved:now?false:v.reserved,featured:now?false:v.featured,draft:now?false:v.draft});
+      Store.update('vehicles',id,{
+        sold:now, reserved:next.reserved, featured:next.featured, draft:next.draft,
+        soldAt:now?Date.now():null, status:Modules.vehicleState(next).key
+      });
+      Store.log(now?'Vehicle marked as sold':'Vehicle back in stock',
+                now?v.name+' was removed from the website':v.name+' is back on the website',
+                'checkCircle',now?'ok':'acc');
       Store.persist(true); Router.refresh();
-      UI.toast('ok',now?'Marked as sold':'Back on the website',v.name);
+      UI.toast('ok',now?'Marked as sold':'Back on the website',
+               now?v.name+' is no longer shown to buyers':v.name);
     }
     if(act==='reserve'){
       Store.update('vehicles',id,{reserved:!v.reserved});
@@ -3511,13 +3656,16 @@ const Modules = {
       Router.refresh(); UI.toast('ok',!v.featured?'Added to featured':'Removed from featured',v.name);
     }
     if(act==='dup'){
+      /* A copy is a draft. Duplicating is how staff start a similar listing,
+         and the half finished result has no business being on the website. */
       const copy = Object.assign({},v,{
         id:U.id('v'), name:v.name+' (copy)', stock:(v.stock||'SA')+'-C', sold:false, reserved:false,
-        featured:false, archived:false, status:'available', views:0, createdAt:Date.now(), images:v.images.slice(), features:v.features.slice()
+        featured:false, archived:false, draft:true, status:'draft', views:0, soldAt:null,
+        createdAt:Date.now(), images:v.images.slice(), features:v.features.slice()
       });
       Store.insert('vehicles',copy);
-      Store.log('Vehicle duplicated',copy.name,'copy');
-      Router.refresh(); UI.toast('ok','Vehicle duplicated','Edit the copy and update its details');
+      Store.log('Vehicle duplicated',copy.name+' was created as a draft','copy');
+      Router.refresh(); UI.toast('ok','Duplicated as a draft','Edit the copy, then publish it when it is ready');
     }
     if(act==='archive'){
       Store.update('vehicles',id,{archived:true,featured:false});
@@ -3543,6 +3691,12 @@ const Modules = {
       size:'sm', title:v.name, sub:'Choose an action', autofocus:false, footer:false,
       body:`<div class="grid" style="gap:8px">
         <button class="btn btn-block" data-m="edit">${ICON.edit} Edit all details</button>
+        <button class="btn btn-block" data-m="preview">${ICON.eye} Preview the listing</button>
+        ${Modules.vehicleState(v).key==='available'||Modules.vehicleState(v).key==='reserved'
+          ? `<button class="btn btn-block" data-m="open">${ICON.globe} Open it on the website</button>` : ''}
+        ${v.archived?'':v.draft
+          ? `<button class="btn btn-block btn-pri" data-m="publish">${ICON.globe} Publish to the website</button>`
+          : `<button class="btn btn-block" data-m="unpublish">${ICON.edit} Take off the website</button>`}
         <button class="btn btn-block" data-m="feature">${ICON.star} ${v.featured?'Remove from featured':'Add to featured'}</button>
         <button class="btn btn-block" data-m="reserve">${ICON.reserve} ${v.reserved?'Remove reservation':'Mark as reserved'}</button>
         <button class="btn btn-block" data-m="dup">${ICON.copy} Duplicate this vehicle</button>
@@ -3556,25 +3710,115 @@ const Modules = {
     U.on(m.el,'click','[data-m]',(e,b)=>{ m.close(); setTimeout(()=>Modules.vehicleAction(b.dataset.m,v.id),160); });
   },
 
+  /* ---------- the listing preview -------------------------------------
+     What the car will look like on the website, built from the draft in
+     the form rather than from what is saved, so staff can check a listing
+     before anyone else sees it. This is the same information the public
+     page renders, laid out the same way. */
+  vehiclePreview(d){
+    const img = d.images && d.images[0];
+    const title = (d.name || ((d.brand||'')+' '+(d.model||'')).trim() || 'Untitled vehicle');
+    const offer = Modules.vehiclePrice(d);
+    const spec = [
+      ['Year', d.year], ['Mileage', d.mileage?U.km(d.mileage):''], ['Transmission', d.transmission],
+      ['Fuel', d.fuel], ['Body', d.body], ['Engine', d.engine], ['Power', d.power],
+      ['Drivetrain', d.drivetrain], ['Doors', d.doors], ['Seats', d.seats],
+      ['Colour', d.colour], ['Condition', d.condition]
+    ].filter(r=>r[1]!=null && String(r[1]).trim()!=='');
+
+    const where = d.draft    ? {t:'Draft, not on the website',  c:'warn'}
+                : d.archived ? {t:'Archived, not on the website',c:'dan'}
+                : d.sold     ? {t:'Sold, not on the website',    c:'dan'}
+                : d.reserved ? {t:'Live, badged as reserved',    c:'warn'}
+                             : {t:'Live on your website',        c:'ok'};
+
+    UI.modal({
+      size:'lg', title:'Listing preview', sub:'Exactly what a buyer sees',
+      footer:`<div class="sp"><button class="btn btn-pri" data-close>Close preview</button></div>`,
+      body:`
+      <div class="note" style="margin-bottom:14px">${ICON.info}<div><b>${U.esc(where.t)}</b></div></div>
+      <div class="preview">
+        <div class="preview-bar"><i></i><i></i><i></i><span>supremeautonorth.co.za/vehicle.html?id=${U.esc(d.id||'new')}</span></div>
+        <div style="padding:20px;background:var(--bg-2)">
+          ${img?`<img src="${img}" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;display:block">`
+               :`<div class="empty" style="padding:38px 0">${ICON.image}<b>No photographs yet</b><p>A listing without photographs is skipped by most buyers.</p></div>`}
+          ${d.images&&d.images.length>1?`<div class="row" style="gap:6px;margin-top:8px">${d.images.slice(1,7).map(s=>`<img src="${s}" alt="" style="width:62px;height:44px;object-fit:cover;border-radius:6px">`).join('')}${d.images.length>7?`<span style="align-self:center;font-size:12px;color:var(--text-3)">+${d.images.length-7} more</span>`:''}</div>`:''}
+
+          <h4 style="font-size:23px;margin:16px 0 2px">${U.esc(title)}</h4>
+          ${d.headline?`<p style="margin:0 0 10px;color:var(--text-2);font-size:13.5px">${U.esc(d.headline)}</p>`:''}
+
+          <div class="veh-price" style="font-size:24px;margin:10px 0">
+            ${offer.was?`<small style="text-decoration:line-through;opacity:.6;margin-right:8px">${U.money(offer.was)}</small>`:''}
+            ${U.money(offer.now)}
+            ${d.installment?`<small style="display:block">From ${U.money(d.installment)} per month</small>`:''}
+          </div>
+
+          ${spec.length?`<div class="kv" style="margin-top:12px">${spec.map(r=>`<div class="kv-row"><span>${U.esc(r[0])}</span><b>${U.esc(String(r[1]))}</b></div>`).join('')}</div>`:''}
+
+          ${d.description?`<div class="sep"></div><p style="font-size:13.5px;line-height:1.7;white-space:pre-wrap">${U.esc(d.description)}</p>`:''}
+
+          ${(d.features&&d.features.length)?`<div class="sep"></div><div class="row" style="gap:6px;flex-wrap:wrap">${d.features.map(x=>`<span class="chip"><i></i>${U.esc(x)}</span>`).join('')}</div>`:''}
+
+          ${[['Service history',d.serviceHistory],['Warranty',d.warranty],['Finance',d.financeNote],['Additional notes',d.notes]]
+            .filter(r=>r[1]&&String(r[1]).trim())
+            .map(r=>`<div class="sep"></div><b style="font-size:12.5px;display:block;margin-bottom:4px">${U.esc(r[0])}</b><p style="font-size:13px;color:var(--text-2);white-space:pre-wrap;margin:0">${U.esc(r[1])}</p>`).join('')}
+        </div>
+      </div>`
+    });
+  },
+
+  /* The one place that decides which price a buyer is shown. A special
+     offer only counts when it is genuinely lower than the asking price,
+     and a previous price only counts when it is genuinely higher, so a
+     mistyped figure cannot advertise a saving that does not exist. */
+  vehiclePrice(d){
+    const ask   = Number(d.price)||0;
+    const offer = Number(d.offerPrice)||0;
+    const prev  = Number(d.previousPrice)||0;
+    const now   = (offer>0 && offer<ask) ? offer : ask;
+    const was   = (offer>0 && offer<ask) ? ask
+                : (prev>now && now>0)    ? prev
+                : 0;
+    return { now:now, was:was, isOffer:(offer>0&&offer<ask) };
+  },
+
   vehicleForm(id){
     const editing = !!id;
     const v = editing ? Object.assign({},Store.find('vehicles',id)) : {
-      name:'', brand:'', model:'', year:new Date().getFullYear(), mileage:0, transmission:'Manual', fuel:'Petrol',
-      price:0, installment:0, description:'', features:[], condition:'Excellent', body:'Hatchback', colour:'',
-      engine:'', power:'', vin:'', stock:'', status:'available', featured:false, sold:false, reserved:false,
-      archived:false, images:[], views:0
+      name:'', headline:'', brand:'', model:'', variant:'', year:new Date().getFullYear(),
+      mileage:0, transmission:'Manual', fuel:'Petrol',
+      price:0, previousPrice:0, offerPrice:0, installment:0,
+      description:'', serviceHistory:'', warranty:'', financeNote:'', notes:'',
+      features:[], condition:'Excellent', body:'Hatchback', colour:'',
+      engine:'', power:'', drivetrain:'', doors:null, seats:null,
+      vin:'', registration:'', stock:'', status:'draft',
+      featured:false, sold:false, reserved:false, draft:true, archived:false, images:[], views:0
     };
     if(!v.features) v.features = [];
     if(!v.images) v.images = [];
     const draft = Object.assign({},v);
     let tab = 'details';
 
+    /* Counts in the tab strip, so an unfinished listing shows where the
+       gaps are without the user opening every tab to look. */
+    const badge = () => {
+      const c = U.el('[data-imgc]',m.el);  if(c) c.textContent = draft.images.length;
+      const fc = U.el('[data-featc]',m.el); if(fc) fc.textContent = draft.features.length;
+      const sb = U.el('[data-statepill]',m.el);
+      if(sb){ const st = Modules.vehicleState(draft); sb.className = 'chip '+st.tone; sb.innerHTML = '<i></i>'+U.esc(st.label); }
+    };
+
     const body = `
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="chip" data-statepill><i></i></span>
+        <button class="btn btn-sm" data-vprev>${ICON.eye} Preview listing</button>
+      </div>
       <div class="tabs" data-vtabs>
         <button data-vt="details" class="on">Vehicle details</button>
         <button data-vt="pricing">Pricing</button>
         <button data-vt="images">Photos <span class="n" data-imgc>${draft.images.length}</span></button>
         <button data-vt="content">Description</button>
+        <button data-vt="features">Features <span class="n" data-featc>${draft.features.length}</span></button>
         <button data-vt="status">Status</button>
       </div>
       <div data-vpanel></div>`;
@@ -3587,37 +3831,55 @@ const Modules = {
       footer:`<button class="btn" data-close>Cancel</button>
               <div class="sp">
                 ${editing?`<button class="btn btn-dan" data-vdel>${ICON.trash} Delete</button>`:''}
-                <button class="btn btn-pri" data-vsave>${ICON.check} ${editing?'Save changes':'Add vehicle'}</button>
+                <button class="btn" data-vsave data-publish="0">${ICON.check} Save as draft</button>
+                <button class="btn btn-pri" data-vsave data-publish="1">${ICON.globe} ${editing?'Save and publish':'Publish now'}</button>
               </div>`
     });
 
-    const panel = U.el('[data-vpanel]',m.el);
-
     function paint(){
+      const panel = U.el('[data-vpanel]',m.el);
+
       if(tab==='details'){
         panel.innerHTML = `
           <div class="grid g2">
-            ${H.field('Vehicle name',H.input('name',draft.name,'BMW 320d M Sport'),'This is the heading shown on your website.')}
+            ${H.field('Vehicle name',H.input('name',draft.name,'BMW 320d M Sport'),'This is the heading shown on your website. Leave it blank and we build it from the brand, model and variant.')}
             ${H.field('Stock number',H.input('stock',draft.stock,'SA-1042'))}
             ${H.field('Brand',H.sel('brand',draft.brand,[{v:'',l:'Choose a brand'}].concat(BRANDS)))}
-            ${H.field('Model',H.input('model',draft.model,'320d M Sport'))}
-            ${H.field('Year',`<input class="inp" data-k="year" type="number" min="1970" max="${new Date().getFullYear()+1}" value="${draft.year}">`)}
-            ${H.field('Mileage in km',`<input class="inp" data-k="mileage" type="number" min="0" value="${draft.mileage}">`)}
+            ${H.field('Model',H.input('model',draft.model,'320d'))}
+            ${H.field('Variant or trim',H.input('variant',draft.variant,'M Sport'),'','optional')}
+            ${H.field('Year',`<input class="inp" data-k="year" type="number" min="1970" max="${new Date().getFullYear()+1}" value="${draft.year||''}">`)}
+            ${H.field('Mileage in km',`<input class="inp" data-k="mileage" type="number" min="0" value="${draft.mileage||0}">`)}
+            ${H.field('Condition',H.sel('condition',draft.condition,CONDS))}
             ${H.field('Transmission',H.sel('transmission',draft.transmission,TRANS))}
             ${H.field('Fuel type',H.sel('fuel',draft.fuel,FUELS))}
             ${H.field('Body type',H.sel('body',draft.body,BODIES))}
             ${H.field('Colour',H.input('colour',draft.colour,'Alpine White'))}
             ${H.field('Engine',H.input('engine',draft.engine,'2.0L Turbo Diesel'))}
             ${H.field('Power',H.input('power',draft.power,'140 kW'))}
-            ${H.field('Condition',H.sel('condition',draft.condition,CONDS))}
-            ${H.field('VIN number',H.input('vin',draft.vin,'Optional'),'Not shown publicly. For your records only.','optional')}
+            ${H.field('Drivetrain',H.sel('drivetrain',draft.drivetrain,[{v:'',l:'Not specified'}].concat(DRIVES)),'','optional')}
+            ${H.field('Doors',`<input class="inp" data-k="doors" type="number" min="1" max="7" value="${draft.doors||''}" placeholder="5">`,'','optional')}
+            ${H.field('Seats',`<input class="inp" data-k="seats" type="number" min="1" max="24" value="${draft.seats||''}" placeholder="5">`,'','optional')}
+          </div>
+          <div class="sep"></div>
+          <div class="note">${ICON.shield}<div>The two fields below stay inside the portal. They are not sent to the website and a visitor cannot read them.</div></div>
+          <div class="grid g2" style="margin-top:12px">
+            ${H.field('VIN or chassis number',H.input('vin',draft.vin,'Optional'),'For your records only.','internal')}
+            ${H.field('Registration status',H.sel('registration',draft.registration,[{v:'',l:'Not recorded'}].concat(REGSTATES)),'For your records only.','internal')}
           </div>`;
       }
+
       if(tab==='pricing'){
+        const p = Modules.vehiclePrice(draft);
+        const badPrev  = draft.previousPrice>0 && draft.previousPrice<=p.now;
+        const badOffer = draft.offerPrice>0 && draft.offerPrice>=draft.price;
         panel.innerHTML = `
           <div class="grid g2">
-            ${H.field('Selling price in rand',`<input class="inp" data-k="price" type="number" min="0" step="500" value="${draft.price}">`,'Shown as '+U.money(draft.price))}
-            ${H.field('Monthly installment in rand',`<input class="inp" data-k="installment" type="number" min="0" step="50" value="${draft.installment}">`,'Shown as From '+U.money(draft.installment)+' per month')}
+            ${H.field('Asking price in rand',`<input class="inp" data-k="price" type="number" min="0" step="500" value="${draft.price||0}">`,'Shown as '+U.money(draft.price))}
+            ${H.field('Monthly installment in rand',`<input class="inp" data-k="installment" type="number" min="0" step="50" value="${draft.installment||0}">`,draft.installment?('Shown as From '+U.money(draft.installment)+' per month'):'Leave at zero to show no installment.')}
+            ${H.field('Previous price',`<input class="inp" data-k="previousPrice" type="number" min="0" step="500" value="${draft.previousPrice||0}">`,
+              badPrev?'Ignored: it has to be higher than the asking price to be a genuine reduction.':'Shows a struck through was price. Only used when it is higher than the asking price.','optional')}
+            ${H.field('Special offer price',`<input class="inp" data-k="offerPrice" type="number" min="0" step="500" value="${draft.offerPrice||0}">`,
+              badOffer?'Ignored: it has to be lower than the asking price.':'Replaces the asking price and strikes the old one through.','optional')}
           </div>
           <div class="sep"></div>
           <div class="grid" style="gap:12px">
@@ -3625,69 +3887,116 @@ const Modules = {
             <div class="note">${ICON.info}<div>The calculator uses a 60 month term at 12.75 percent with a 10 percent deposit. Always confirm the final figure with your finance house before advertising it.</div></div>
             <div class="card" style="box-shadow:none;background:var(--glass)"><div class="card-b">
               <div class="kv">
-                <div class="kv-row"><span>Selling price</span><b>${U.money(draft.price)}</b></div>
-                <div class="kv-row"><span>Suggested deposit at 10 percent</span><b>${U.money(draft.price*0.1)}</b></div>
+                <div class="kv-row"><span>Price a buyer sees</span><b>${U.money(p.now)}</b></div>
+                <div class="kv-row"><span>Struck through as was</span><b>${p.was?U.money(p.was):'Nothing'}</b></div>
+                <div class="kv-row"><span>Suggested deposit at 10 percent</span><b>${U.money(p.now*0.1)}</b></div>
                 <div class="kv-row"><span>Advertised installment</span><b>${draft.installment?U.money(draft.installment)+' per month':'Not set'}</b></div>
               </div>
             </div></div>
           </div>`;
         U.el('[data-calc]',panel).addEventListener('click',()=>{
-          const principal = draft.price*0.9, r = 0.1275/12, n = 60;
+          const base = Modules.vehiclePrice(draft).now;
+          if(!base) return UI.toast('warn','Set a price first','The calculator needs an asking price to work from.');
+          const principal = base*0.9, r = 0.1275/12, n = 60;
           draft.installment = Math.round((principal*r)/(1-Math.pow(1+r,-n))/10)*10;
           paint(); UI.toast('ok','Installment calculated',U.money(draft.installment)+' per month');
         });
       }
+
       if(tab==='images'){
         panel.innerHTML = `
           <div class="grid" style="gap:14px">
-            <div class="note">${ICON.info}<div>Add up to ${MAX_VEHICLE_IMAGES} photos. The first photo is the main image on your website, so make it the best exterior shot. Drag any photo to change the order.</div></div>
+            <div class="note">${ICON.info}<div>Add up to ${MAX_VEHICLE_IMAGES} photos. The first photo is the main image on your website, so make it the best exterior shot. Drag any photo to change the order. Large photographs are shrunk automatically before they upload.</div></div>
             <div id="vUp"></div>
           </div>`;
         UI.uploader(U.el('#vUp',panel),{
           max:MAX_VEHICLE_IMAGES, images:draft.images, bucket:'vehicle-images', label:'Drop vehicle photos here or tap to browse',
           hint:'Landscape photos look best.',
-          onChange:imgs=>{ draft.images = imgs; const c=U.el('[data-imgc]',m.el); if(c) c.textContent = imgs.length; }
+          onChange:imgs=>{ draft.images = imgs; badge(); }
         });
       }
+
       if(tab==='content'){
         panel.innerHTML = `
           <div class="grid" style="gap:16px">
-            ${H.field('Description',H.ta('description',draft.description,'Describe the vehicle, its history and what makes it a good buy.',7),'Mention the service history, condition and any extras. Buyers read this before they call.')}
-            ${H.field('Features',`<div id="vFeat"></div>`,'Type a feature and press Enter. These show as a tick list on your website.')}
-            <div class="row">
-              <button class="btn btn-sm" data-quick="Full service history">Add service history</button>
-              <button class="btn btn-sm" data-quick="Accident free">Add accident free</button>
-              <button class="btn btn-sm" data-quick="One owner from new">Add one owner</button>
-              <button class="btn btn-sm" data-quick="Balance of factory warranty">Add warranty</button>
+            ${H.field('Listing headline',H.input('headline',draft.headline,'One owner, full service history, immaculate'),'One short line under the vehicle name. The first thing a buyer reads after the price.','optional')}
+            ${H.field('Description',H.ta('description',draft.description,'Describe the vehicle, its history and what makes it a good buy.',7),'Mention the condition and any extras. Buyers read this before they call.')}
+            <div class="grid g2">
+              ${H.field('Service history',H.ta('serviceHistory',draft.serviceHistory,'Full service history with agents, last service at 84 000km.',3),'','optional')}
+              ${H.field('Warranty',H.ta('warranty',draft.warranty,'Balance of factory warranty until March 2027.',3),'','optional')}
+              ${H.field('Finance availability',H.ta('financeNote',draft.financeNote,'Finance can be arranged through all major banks, subject to approval.',3),'','optional')}
+              ${H.field('Additional notes',H.ta('notes',draft.notes,'Anything else a buyer should know.',3),'Shown on the website.','optional')}
             </div>
+            <div class="note">${ICON.info}<div>Write only what you can stand behind. Service history, warranty and finance claims here appear on the public listing exactly as typed.</div></div>
           </div>`;
-        const tg = UI.tags(U.el('#vFeat',panel),draft.features,list=>draft.features=list);
-        U.on(panel,'click','[data-quick]',(e,b)=>{
-          const val = b.dataset.quick;
-          if(draft.features.indexOf(val)<0){ draft.features.push(val); tg.get(); paint(); }
-          else UI.toast('warn','Already added',val+' is already on the list.');
+      }
+
+      if(tab==='features'){
+        panel.innerHTML = `
+          <div class="grid" style="gap:16px">
+            <div class="note">${ICON.info}<div>Tick what the vehicle actually has. These show as a tick list on the listing and are the detail buyers scan for after the price.</div></div>
+            ${FEATURE_GROUPS.map(g=>`
+              <div>
+                <b style="font-size:12.5px;display:block;margin-bottom:8px">${U.esc(g.name)}</b>
+                <div class="row" style="gap:6px;flex-wrap:wrap">
+                  ${g.items.map(it=>`<button class="btn btn-sm ${draft.features.indexOf(it)>=0?'btn-ok':''}" data-feat="${U.esc(it)}">${draft.features.indexOf(it)>=0?ICON.check:ICON.plus} ${U.esc(it)}</button>`).join('')}
+                </div>
+              </div>`).join('')}
+            <div class="sep"></div>
+            ${H.field('Anything else',`<div id="vFeat"></div>`,'Type a feature and press Enter. Use this only for things not on the lists above.')}
+          </div>`;
+        /* The free text box holds only what is not already on a list above,
+           so it does not fill up with fifteen chips the user just ticked. On
+           change the two halves are put back together in one array. */
+        const custom = draft.features.filter(x=>FEATURE_SET.indexOf(x)<0);
+        UI.tags(U.el('#vFeat',panel),custom,list=>{
+          draft.features = draft.features.filter(x=>FEATURE_SET.indexOf(x)>=0).concat(list);
+          badge();
+        });
+        U.on(panel,'click','[data-feat]',(e,b)=>{
+          const val = b.dataset.feat;
+          const at = draft.features.indexOf(val);
+          if(at>=0) draft.features.splice(at,1); else draft.features.push(val);
+          badge(); paint();
         });
       }
+
       if(tab==='status'){
+        const st = Modules.vehicleState(draft);
         panel.innerHTML = `
           <div class="grid" style="gap:11px">
-            ${H.toggleCard('featured',draft.featured,'Featured vehicle','Show this vehicle on your homepage','','star')}
-            ${H.toggleCard('reserved',draft.reserved,'Reserved','Shows a reserved badge and stops new enquiries','warn','reserve')}
-            ${H.toggleCard('sold',draft.sold,'Sold','Marks the vehicle sold and removes it from the available list','ok','checkCircle')}
+            <div class="note ${st.tone==='ok'?'':'warn'}">${ICON.info}<div><b>${U.esc(st.label)}.</b> ${U.esc(st.why)}</div></div>
+            ${H.toggleCard('draft',draft.draft,'Draft','Work on the listing privately. Nothing appears on the website until you publish it.','warn','edit')}
+            ${H.toggleCard('featured',draft.featured,'Featured vehicle','Show this vehicle first on your homepage','','star')}
+            ${H.toggleCard('reserved',draft.reserved,'Reserved','Stays on the website with a reserved badge','warn','reserve')}
+            ${H.toggleCard('sold',draft.sold,'Sold','Removes the vehicle from your website. It stays here in your records.','ok','checkCircle')}
             ${H.toggleCard('archived',draft.archived,'Archived','Hides the vehicle from your website completely','','archive')}
             <div class="sep"></div>
             ${H.field('Vehicle views',`<input class="inp" data-k="views" type="number" min="0" value="${draft.views||0}">`,'Shown on the vehicle card and the dashboard. Reset it to zero if you relist the vehicle.')}
           </div>`;
       }
+
+      badge();
+
       H.bind(panel,(k,val)=>{
-        draft[k] = ['year','mileage','price','installment','views'].indexOf(k)>=0 ? Number(val)||0 : val;
+        const nums = ['year','mileage','price','installment','views','previousPrice','offerPrice','doors','seats'];
+        if(nums.indexOf(k)>=0){
+          const num = Number(val)||0;
+          draft[k] = (k==='doors'||k==='seats') ? (num||null) : num;
+        } else {
+          draft[k] = val;
+        }
+        if(k==='sold' && val) draft.draft = false;      /* a sold car is not a draft */
+        if(k==='draft' && val) draft.featured = false;  /* nor is a draft featured   */
         if(k==='brand' || k==='model'){
-          if(!editing && !draft.name && draft.brand && draft.model) {
+          if(!editing && !draft.name && draft.brand && draft.model){
             const n = U.el('[data-k="name"]',panel);
-            draft.name = draft.brand+' '+draft.model;
+            draft.name = (draft.brand+' '+draft.model).trim();
             if(n) n.value = draft.name;
           }
         }
+        if(['draft','sold','reserved','archived','featured'].indexOf(k)>=0){ badge(); if(tab==='status') paint(); }
+        if(['price','previousPrice','offerPrice'].indexOf(k)>=0 && tab==='pricing') badge();
       },()=>{});
     }
 
@@ -3697,27 +4006,59 @@ const Modules = {
       paint();
     });
 
-    UI.once(U.el('[data-vsave]',m.el),()=>{
+    U.on(m.el,'click','[data-vprev]',()=>Modules.vehiclePreview(draft));
+
+    U.els('[data-vsave]',m.el).forEach(btn=>UI.once(btn,()=>{
+      const publish = btn.dataset.publish === '1';
+
       if(!draft.name.trim() && !(draft.brand && draft.model)){
         tab='details';
         U.els('[data-vt]',m.el).forEach(x=>x.classList.toggle('on',x.dataset.vt==='details'));
         paint();
         return UI.toast('err','A name is needed','Give the vehicle a name, or choose a brand and model.');
       }
-      if(!draft.name.trim()) draft.name = (draft.brand+' '+draft.model).trim();
-      draft.status = draft.sold ? 'sold' : draft.reserved ? 'reserved' : 'available';
+      if(!draft.name.trim()) draft.name = [draft.brand,draft.model,draft.variant].filter(Boolean).join(' ').trim();
+
+      /* Publishing is the point at which a listing becomes someone else's
+         problem if it is wrong, so it is the only action that insists on
+         a price and a photograph. Saving a draft never blocks. */
+      if(publish){
+        const missing = [];
+        if(!Modules.vehiclePrice(draft).now) missing.push('an asking price');
+        if(!draft.images.length) missing.push('at least one photograph');
+        if(missing.length){
+          tab = !draft.images.length ? 'images' : 'pricing';
+          U.els('[data-vt]',m.el).forEach(x=>x.classList.toggle('on',x.dataset.vt===tab));
+          paint();
+          return UI.toast('err','Not ready to publish','This listing still needs '+missing.join(' and ')+'.');
+        }
+        draft.draft = false;
+      } else {
+        draft.draft = true;
+        draft.featured = false;
+      }
+
+      draft.status = Modules.vehicleState(draft).key;
+      if(draft.sold && !draft.soldAt) draft.soldAt = Date.now();
+      if(!draft.sold) draft.soldAt = null;
+
       if(editing){
         Store.update('vehicles',id,draft);
         Store.log('Vehicle updated',draft.name+' details were edited','edit');
       }else{
         Store.insert('vehicles',draft);
-        Store.log('Vehicle added',draft.name+' was listed at '+U.money(draft.price),'car','ok');
+        Store.log(publish?'Vehicle published':'Draft listing created',
+                  draft.name+(publish?(' was listed at '+U.money(Modules.vehiclePrice(draft).now)):' was saved as a draft'),
+                  'car', publish?'ok':'');
       }
       Store.persist(true);
       m.close();
       Router.refresh();
-      UI.toast('ok',editing?'Vehicle saved':'Vehicle added to your website',draft.name);
-    });
+      UI.toast('ok',
+        publish ? (editing?'Saved and live on your website':'Published to your website')
+                : 'Saved as a draft',
+        publish ? draft.name : draft.name+' is not on the website yet');
+    }));
 
     const del = U.el('[data-vdel]',m.el);
     if(del) UI.once(del,async()=>{
@@ -3731,6 +4072,18 @@ const Modules = {
     paint();
   },
 
+  /* One answer to "where is this listing right now", used by the form, the
+     cards, the status pill and the saved status column, so the portal can
+     never tell the user two different things about the same car. The order
+     matters: archived beats sold beats reserved, because that is the order
+     in which each one removes a car from the website. */
+  vehicleState(v){
+    if(v.archived) return { key:'archived', label:'Archived',  tone:'',     why:'Hidden from the website completely.' };
+    if(v.draft)    return { key:'draft',    label:'Draft',     tone:'warn', why:'Not on the website. Publish it when you are ready.' };
+    if(v.sold)     return { key:'sold',     label:'Sold',      tone:'dan',  why:'Removed from the website so nobody enquires about it.' };
+    if(v.reserved) return { key:'reserved', label:'Reserved',  tone:'warn', why:'On the website with a reserved badge.' };
+    return             { key:'available', label:'Published', tone:'ok',   why:'Live on your website now.' };
+  },
   sortRow(v){
     return `<div class="sortrow" data-id="${v.id}">
       <span class="drag-handle">${ICON.grip}</span>
@@ -4107,14 +4460,41 @@ const Modules = {
   },
 
   exportVehicles(){
-    const rows = [['Stock number','Name','Brand','Model','Year','Mileage','Transmission','Fuel','Body','Colour','Engine','Power','Condition','Price','Installment','VIN','Status','Featured','Reserved','Sold','Archived','Photos','Views','Features','Description','Listed on']];
+    const rows = [['Stock number','Name','Headline','Brand','Model','Variant','Year','Mileage','Transmission','Fuel','Body','Colour','Engine','Power','Drivetrain','Doors','Seats','Condition','Asking price','Previous price','Offer price','Price shown','Installment','VIN','Registration','Status','Featured','Reserved','Sold','Draft','Archived','Photos','Views','Features','Description','Service history','Warranty','Finance','Notes','Listed on','Sold on']];
     Store.list('vehicles').forEach(v=>rows.push([
-      v.stock,v.name,v.brand,v.model,v.year,v.mileage,v.transmission,v.fuel,v.body,v.colour,v.engine,v.power,v.condition,
-      v.price,v.installment,v.vin,v.status,v.featured?'Yes':'No',v.reserved?'Yes':'No',v.sold?'Yes':'No',v.archived?'Yes':'No',
-      (v.images||[]).length,v.views||0,(v.features||[]).join('; '),v.description,U.date(v.createdAt)
+      v.stock,v.name,v.headline,v.brand,v.model,v.variant,v.year,v.mileage,v.transmission,v.fuel,v.body,v.colour,
+      v.engine,v.power,v.drivetrain,v.doors,v.seats,v.condition,
+      v.price,v.previousPrice,v.offerPrice,Modules.vehiclePrice(v).now,v.installment,v.vin,v.registration,
+      Modules.vehicleState(v).label,v.featured?'Yes':'No',v.reserved?'Yes':'No',v.sold?'Yes':'No',
+      v.draft?'Yes':'No',v.archived?'Yes':'No',
+      (v.images||[]).length,v.views||0,(v.features||[]).join('; '),v.description,
+      v.serviceHistory,v.warranty,v.financeNote,v.notes,
+      U.date(v.createdAt),v.soldAt?U.date(v.soldAt):''
     ]));
     U.save('supreme-auto-vehicles-'+new Date().toISOString().slice(0,10)+'.csv',U.csv(rows),'text/csv');
     UI.toast('ok','Vehicles exported',rows.length-1+' vehicles saved to CSV');
+  },
+
+  exportSitemap(){
+    const live = Store.list('vehicles').filter(v=>!v.archived && !v.draft && !v.sold);
+    const day = ts => new Date(ts||Date.now()).toISOString().slice(0,10);
+    const today = day();
+    const esc = u => String(u).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const page = (loc,mod,freq,pri) =>
+      '  <url>\n    <loc>'+esc(loc)+'</loc>\n    <lastmod>'+mod+'</lastmod>\n'+
+      '    <changefreq>'+freq+'</changefreq>\n    <priority>'+pri+'</priority>\n  </url>';
+
+    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+      [ page(SITE_URL, today, 'daily', '1.0'),
+        page(SITE_URL+'privacy.html', today, 'yearly', '0.1'),
+        page(SITE_URL+'terms.html',   today, 'yearly', '0.1')
+      ].concat(live.map(v=>
+        page(SITE_URL+'vehicle.html?id='+encodeURIComponent(v.id), day(v.updatedAt||v.createdAt), 'weekly', '0.8')
+      )).join('\n')+'\n</urlset>\n';
+
+    U.save('sitemap.xml',xml,'application/xml');
+    UI.toast('ok','Sitemap built',live.length+' vehicles listed. Replace sitemap.xml in the website folder with this file.');
   },
 
   exportEnquiries(){
